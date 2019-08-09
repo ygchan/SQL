@@ -102,27 +102,112 @@ from account
 where product_cd in (select product_cd from product
    where product_type_cd = 'ACCOUNT');
 
+-- 09: Using not in operator
+select account_id, product_cd, cust_id, avail_balance
+from account
+where product_cd not in ('CHK', 'SAV', 'CD', 'MM');
 
+-- 10: Partial string matches
+select emp_id, fname, lname
+from employee
+where left(lname, 1) = 'T';
 
+-- 11: Wild card to search for partial string matches
+-- The _ matches exactly one character
+-- The % matches any of of the character (or no character)
+select lname
+from employee
+where lname like '_a%e%';
 
+-- 12: Matching a SSN pattern, underscore represents exactly one character
+select cust_id, fed_id
+from customer
+where fed_id like '___-__-____';
 
+-- 13: Multiple search expressions (LIKE)
+-- This query finds all employee whose last name beings with F or G.
+select emp_id, fname, lname
+from employee
+where lname like 'F%' or lname like 'G%';
 
+-- 14: Using regular expressions
+-- This query finds all employee whose last name beings with F or G.
+select emp_id, fname, lname
+from employee
+where lname regexp '^[FG]';
 
+-- 15: Null values - not applicable, value not known yet, undefined
+-- An expression can be null, but it can never equal null
+-- Two nulls are never equal to each other
+select emp_id, fname, lname, superior_emp_id
+from employee
+/* Remember to use is null operator to test if an expression is null */
+where superior_emp_id is null;
 
+-- 16: Trick question: identify all employees who are not managed by Helen 
+-- whose employee is is 6. 
+select emp_id, fname, lname, superior_emp_id
+from employee
+where superior_emp_id != 6
+   /* You must account for the possibility that some rows might contain null */
+   or superior_emp_id is null;
 
+-- Good idea to find out which columns allow nulls so you can take appropriate
+-- measures with your filter conditions.
 
+create table some_transcation
+(
+   txn_id smallint unsigned ,
+   txn_date date,
+   account_id smallint unsigned ,
+   txn_type_cd char(3),
+   amount float(4, 2),
+   constraint pk_txn_id primary key (txn_id)
+);
 
+alter table some_transcation 
+   modify txn_id smallint unsigned auto_increment;
 
+insert into some_transcation (txn_date, account_id, txn_type_cd, amount)
+   values('2005-02-22', 101, 'CDT', 1000.00);
+insert into some_transcation (txn_date, account_id, txn_type_cd, amount)
+   values('2005-02-23', 102, 'CDT', 525.75);
+insert into some_transcation (txn_date, account_id, txn_type_cd, amount)
+   values('2005-02-24', 101, 'DBT', 100.00);
+insert into some_transcation (txn_date, account_id, txn_type_cd, amount)
+   values('2005-02-24', 103, 'CDT', 55);
+insert into some_transcation (txn_date, account_id, txn_type_cd, amount)
+   values('2005-02-25', 101, 'DBT', 50);
+insert into some_transcation (txn_date, account_id, txn_type_cd, amount)
+   values('2005-02-25', 103, 'DBT', 25);
+insert into some_transcation (txn_date, account_id, txn_type_cd, amount)
+   values('2005-02-25', 102, 'CDT', 125.37);
+insert into some_transcation (txn_date, account_id, txn_type_cd, amount)
+   values('2005-02-26', 103, 'DBT', 10);
+insert into some_transcation (txn_date, account_id, txn_type_cd, amount)
+   values('2005-02-27', 101, 'CDT', 75);
 
+/* Output:
+mysql> select *
+    -> from some_transcation;
++--------+------------+------------+-------------+--------+
+| txn_id | txn_date   | account_id | txn_type_cd | amount |
++--------+------------+------------+-------------+--------+
+|      1 | 2005-02-22 |        101 | CDT         |  99.99 |
+|      2 | 2005-02-23 |        102 | CDT         |  99.99 |
+|      3 | 2005-02-24 |        101 | DBT         |  99.99 |
+|      4 | 2005-02-24 |        103 | CDT         |  55.00 |
+|      5 | 2005-02-25 |        101 | DBT         |  50.00 |
+|      6 | 2005-02-25 |        103 | DBT         |  25.00 |
+|      7 | 2005-02-25 |        102 | CDT         |  99.99 |
+|      8 | 2005-02-26 |        103 | DBT         |  10.00 |
+|      9 | 2005-02-27 |        101 | CDT         |  75.00 |
++--------+------------+------------+-------------+--------+
+9 rows in set (0.00 sec)
+*/
 
-
-
-
-
-
-
-
-
+-- Test your knowledge!!
+-- 4.1 
 
 
 
