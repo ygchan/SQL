@@ -116,3 +116,117 @@ from employee
 where (title = 'Head Teller' and start_date > '2000-01-01')
    or (title = 'Teller' and start_date > '2001-01-01'); 
 
+-- 11: Group by and having clauses. Having filter group, just like where 
+-- filter records (rows) by column value (variables).
+select d.name, count(e.emp_id) num_employees
+from department d 
+   inner join employee e on (d.dept_id = e.dept_id)
+group by d.name /* Department name */
+/* Noticed the usage of count(e.emp_id) */
+having count(e.emp_id) > 2;
+
+-- 12: Order by clause. Sort your result set using raw column or expression.
+-- The result set has now been sorted by employeeID and then by account type.
+select open_emp_id, product_cd /* Product code */
+from account
+order by open_emp_id, product_cd;
+
+/* Output:
++-------------+------------+
+| open_emp_id | product_cd |
++-------------+------------+
+|           1 | CD         |
+|           1 | CD         |
+|           1 | CHK        |
+|           1 | CHK        |
+|           1 | CHK        |
+|           1 | MM         |
+|           1 | MM         |
+|           1 | SAV        |
+|          10 | BUS        |
+|          10 | CD         |
+|          10 | CD         |
+|          10 | CHK        |
+|          10 | CHK        |
+|          10 | SAV        |
+|          10 | SAV        |
+|          13 | CHK        |
+|          13 | MM         |
+|          13 | SBL        |
+|          16 | BUS        |
+|          16 | CHK        |
+|          16 | CHK        |
+|          16 | CHK        |
+|          16 | CHK        |
+|          16 | SAV        |
++-------------+------------+
+24 rows in set (0.00 sec)
+*/
+
+-- 13: Ascending vs. Descending sort order. (Asecending is default)
+select account_id, product_cd, open_date, avail_balance
+from account
+order by avail_balance desc;
+
+-- 14: Sorting via expression
+select cust_id, cust_type_cd, city, state, fed_id
+from customer
+order by right(fed_id, 3);
+
+/* Output:
++---------+--------------+------------+-------+-------------+
+| cust_id | cust_type_cd | city       | state | fed_id      |
++---------+--------------+------------+-------+-------------+
+|       1 | I            | Lynnfield  | MA    | 111-11-1111 |
+|      10 | B            | Salem      | NH    | 04-1111111  |
+|       2 | I            | Woburn     | MA    | 222-22-2222 |
+|      11 | B            | Wilmington | MA    | 04-2222222  |
+|       3 | I            | Quincy     | MA    | 333-33-3333 |
+|      12 | B            | Salem      | NH    | 04-3333333  |
+|      13 | B            | Quincy     | MA    | 04-4444444  |
+|       4 | I            | Waltham    | MA    | 444-44-4444 |
+|       5 | I            | Salem      | NH    | 555-55-5555 |
+|       6 | I            | Waltham    | MA    | 666-66-6666 |
+|       7 | I            | Wilmington | MA    | 777-77-7777 |
+|       8 | I            | Salem      | NH    | 888-88-8888 |
+|       9 | I            | Newton     | MA    | 999-99-9999 |
++---------+--------------+------------+-------+-------------+
+13 rows in set (0.01 sec)
+*/
+
+-- 15: Sorting by numeric placeholders. It is okay to do this when you are
+-- testing and ad-hoc one time use lookup. But it is a bad practice to use 
+-- this for production, because the code can become unpredicatable.
+select emp_id, title, start_date, fname, lname
+from employee
+order by 2, 5;
+
+-- Test your knowledge!
+-- 3.1 Get the employee id, first name, last name for all the bank employee
+-- and sort by last name, then first name.
+select emp_id, fname, lname
+from employee 
+order by lname, fname;
+
+-- 3.2 Get the account id, customer id, available balance for all accounts
+-- whose status = 'ACTIVE' and whose available balance > $2500.
+select account_id, cust_id, avail_balance
+from account 
+where status = 'ACTIVE' 
+   and avail_balance > 2500;
+
+-- 3.3 Get the ID of the employees who opened the accounts
+-- use the account.open_emp_id, include a single row for each distinct employee.
+select distinct open_emp_id
+from account
+order by open_emp_id;
+
+-- 3.4 Fill in the blanks
+-- This question I used desc table, and select * from product to understand 
+-- what is in each table and their column names.
+select p.product_cd, 
+   a.cust_id, a.avail_balance
+from product p
+   inner join account a on (p.product_cd = a.product_cd)
+where p.product_type_cd = 'ACCOUNT' /* product name */
+order by p.product_cd, a.cust_id;
