@@ -31,7 +31,46 @@ select fname, lname
 
 -- 03: Use a literal, expression and buildin function
 select emp_id,
-		'ACTIVE',
-		emp_id * 2,
-		upper(lname)
+	'ACTIVE',
+	emp_id * 2,
+	upper(lname)
 	from employee;
+
+/* 
+mysql> select version(), 
+    -> user(),
+    -> database();
++-----------+-----------------+------------+
+| version() | user()          | database() |
++-----------+-----------------+------------+
+| 5.6.26    | Study@localhost | bank       |
++-----------+-----------------+------------+
+1 row in set (0.01 sec)
+*/
+
+-- 04: Column Aliases, you can rename the label by typing another name after it
+-- or you can use 'AS' keywoord
+select emp_id,
+	'Active' status,
+	emp_id * 2 empid_x_2,
+	upper(lname) last_name_upper
+	from employee;
+
+-- 05: Select distinct records
+-- But learn the understand your data, do not always use distinct just because.
+select distinct cust_id
+	from account;
+
+-- The from clause
+-- It defines the tables used by a query, along with the means of linking the
+-- tables together.
+
+-- Tables (Permanent, Temporary, Virtual Table)
+-- Subquery-generated table, subquery is a query contained within another query
+-- it is surrounded by parentheses and is visible by the outer query code.
+
+-- 06: Subquery, this one didn't have where in the subquery
+-- Usually the subquery uses where/groupby/having.
+select e.emp_id, e.fname, e.lname
+	from (select emp_id, fname, lname, start_date, title
+		  from employee) e
