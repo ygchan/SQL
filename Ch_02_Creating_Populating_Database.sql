@@ -113,3 +113,65 @@ select food
 | pizza   |
 +---------+
 */
+
+-- 12: Can you insert another person?
+insert into 
+	person (person_id, fname, lname, gender, birth_date)
+	values (null, 'Vivian', 'Chan', 'F', '1996-03-19');
+
+-- 13: Update the address information
+update person
+	set street = '1225 Temont St.',
+		city = 'Boston',
+		state = 'MA',
+		country = 'USA',
+		postal_code = '02138'
+	where person_id = 1;
+
+-- 14: Delete row
+delete from person
+	where person_id = 2;
+
+-- 15: Update date using str_to_date
+update person
+	set birth_date = str_to_date('Dec-21-1989', '%b-%d-%Y')
+	where person_id = 1;
+
+/* Most commonly used strings formatters 
+	%a : week day names
+	%b : short month name, such as Jan, Feb...
+	%M : full month name (January...)
+
+	%d : numeric day
+	%m : numeric month
+	%Y : numeric year (4 digit)
+*/
+
+-- 16: See the tables avaliable in your database
+show tables;
+
+/* Output:
+mysql> show tables;
++----------------+
+| Tables_in_bank |
++----------------+
+| account        |
+| branch         |
+| business       |
+| customer       |
+| department     |
+| employee       |
+| favorite_food  |
+| individual     |
+| officer        |
+| person         |
+| product        |
+| product_type   |
+| transaction    |
++----------------+
+13 rows in set (0.01 sec)
+*/
+
+-- 17: Remove (Drop) tables
+drop table favorite_food;
+drop table person;
