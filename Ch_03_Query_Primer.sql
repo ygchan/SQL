@@ -73,4 +73,4 @@ select distinct cust_id
 -- Usually the subquery uses where/groupby/having.
 select e.emp_id, e.fname, e.lname
 	from (select emp_id, fname, lname, start_date, title
-		  from employee) e
+			from employee) e
