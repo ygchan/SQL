@@ -71,7 +71,11 @@ insert into
 	values (null, 'George', 'Chan', 'M', '1972-05-27');
 
 -- 08: Look at the data
-/*
+select person_id, fname, lname, birth_date
+	from person
+	where person_id = 1;
+
+/* Output:
 +-----------+--------+-------+------------+
 | person_id | fname  | lname | birth_date |
 +-----------+--------+-------+------------+
@@ -79,4 +83,33 @@ insert into
 +-----------+--------+-------+------------+
 */
 
+-- 09: Look at the data by fname = 'George'
+select person_id, fname, lname, birth_date
+	from person
+	where fname = 'George';
 
+-- 10: Insert some more data
+insert into favorite_food (person_id, food)
+	values (1, 'pizza');
+
+insert into favorite_food (person_id, food)
+	values (1, 'cookies');
+
+insert into favorite_food (person_id, food)
+	values (1, 'pasta');
+
+-- 11: Look at all George's favorite food
+select food
+	from favorite_food
+	where person_id = 1
+	order by food;
+
+/* Output:
++---------+
+| food    |
++---------+
+| cookies |
+| pasta   |
+| pizza   |
++---------+
+*/
