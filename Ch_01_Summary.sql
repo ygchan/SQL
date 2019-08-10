@@ -16,8 +16,9 @@
 -- Chapter 7: Data Generation, Conversion and Manipulation
 -- 		length()
 --		locate()
--- 		show warnings;
+-- 		show warnings
 --		concat()
 -- 		position()
 --		like '%substring%' in select context
 --		ssn regex '.{3}-.{2}-.{4}' is_ss_no_format
+--      insert()

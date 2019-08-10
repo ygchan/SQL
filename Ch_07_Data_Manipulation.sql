@@ -177,3 +177,46 @@ delete from string_tbl;
 insert into string_tbl (text_fld)
    values ('This string was 29 characters');
 
+-- 10: Second to length, the extremely useful string function concat()
+-- when you want to append additional characters to a stored string
+update string_tbl
+   set text_fld = concat(text_fld, ', but now it is longer and better.');
+
+/* Output:
++-----------------------------------------------------------------+
+| text_fld                                                        |
++-----------------------------------------------------------------+
+| This string was 29 characters, but now it is longer and better. |
++-----------------------------------------------------------------+
+1 row in set (0.00 sec)
+*/
+
+select concat(fname, ' ', lname, ' has been a ',
+   title, ' since ', start_date) emp_narrative
+from employee
+where title = 'Teller' or title = 'Head Teller';
+
+/* Output:
++---------------------------------------------------------+
+| emp_narrative                                           |
++---------------------------------------------------------+
+| Helen Fleming has been a Head Teller since 2004-03-17   |
+| Chris Tucker has been a Teller since 2004-09-15         |
+| Sarah Parker has been a Teller since 2002-12-02         |
+| Jane Grossman has been a Teller since 2002-05-03        |
+| Paula Roberts has been a Head Teller since 2002-07-27   |
+| Thomas Ziegler has been a Teller since 2000-10-23       |
+| Samantha Jameson has been a Teller since 2003-01-08     |
+| John Blake has been a Head Teller since 2000-05-11      |
+| Cindy Mason has been a Teller since 2002-08-09          |
+| Frank Portman has been a Teller since 2003-04-01        |
+| Theresa Markham has been a Head Teller since 2001-03-15 |
+| Beth Fowler has been a Teller since 2002-06-29          |
+| Rick Tulman has been a Teller since 2002-12-12          |
++---------------------------------------------------------+
+13 rows in set (0.01 sec)
+*/
+
+-- 11: Insert string in the middle (or any positions)
+select insert('Good morning team!', 14, 0, 'Testing ');
+select replace('Good morning team!', 'team', 'Testing team');
