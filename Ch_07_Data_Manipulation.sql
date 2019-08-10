@@ -267,8 +267,71 @@ select round(72.0909, 1), round(72.0909, 2), round(72.0909, 3);
 1 row in set (0.00 sec)
 */
 
+-- 16: Both truncate() and round() also allow a negative value
+-- meaning that the number left of the decimal place are truncated/rounded.
 
+select round(17, -1), truncate(17, -1);
 
+/* Output:
++---------------+------------------+
+| round(17, -1) | truncate(17, -1) |
++---------------+------------------+
+|            20 |               10 |
++---------------+------------------+
+1 row in set (0.00 sec)
+*/
 
+-- This can be useful when generating report at a very high level.
+-- But use round/truncate with negative second argument with care!
+
+-- 17: Signed Data with sign() and abs() function
+select account_id, sign(avail_balance), abs(avail_balance)
+from account;
+
+-- 18: Generating Temporal Data
+-- There are 3 ways to generate temporal data.
+--    Copying data from existing date, datetime, or time column
+--    Executing a built-in functino that returns a date, datetime or time
+--    Building a string representation and evaluate by the server
+
+-- Date format components
+-- YYYY (Year, such as 1000 to 9999)
+-- MM   (Month, such as 01 to 12)
+-- DD   (Day, such as 01 to 31)
+-- HH   (Hour, such as 00 to 23)
+-- HHH  (Hour elapsed -838 to 838)
+-- MI   (Minute, 00 to 59)
+-- SS   (Second, 00 to 59)
+
+-- Default Format
+-- date      YYYY-MM-DD
+-- datetime  YYYY-MM-DD HH:MI:SS
+-- timestamp YYYY-MM-DD HH:MI:SS
+-- Time      HHH:MI:SS
+
+-- If you provide a properly formatted string, the server will do the datetime()
+-- convertion for you
+update transcation
+   set txn_date = '2008-09-17 15:30:00'
+   where txn_id = 99999;
+
+-- Syntax: cast('datetime string' as datetime)
+select cast('2019-08-12 11:30:00' as datetime);
+select cast('2019-08-12' as date) my_date;
+select cast('14:10:00' as time) my_time;
+
+/* Output:
++-----------------------------------------+
+| cast('2019-08-12 11:30:00' as datetime) |
++-----------------------------------------+
+| 2019-08-12 11:30:00                     |
++-----------------------------------------+
+1 row in set (0.01 sec)
+*/
+
+-- 19: string to date function (str_to_date)
+update individual
+   set birth_date = str_to_date('Septembe 18, 2008', '%M %d, %Y')
+   where cust_id = 9999;
 
 
