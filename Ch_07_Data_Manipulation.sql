@@ -219,4 +219,56 @@ where title = 'Teller' or title = 'Head Teller';
 
 -- 11: Insert string in the middle (or any positions)
 select insert('Good morning team!', 14, 0, 'Testing ');
+
+-- Replace will replace every instance of the search string
+-- so becareful you don't replace more than your wanted.
 select replace('Good morning team!', 'team', 'Testing team');
+
+-- 12: Substring - to extract a specified number of characters starting at
+-- a particular position
+select substring('good morning world', 14, 5);
+
+/* Output:
++----------------------------------------+
+| substring('good morning world', 14, 5) |
++----------------------------------------+
+| world                                  |
++----------------------------------------+
+1 row in set (0.00 sec)
+*/
+
+-- 13: Working with numeric Data
+select (1 + 3) / 2;
+
+-- 14: Controlling number precision
+--    ceil()     round up
+--    floor()    round down
+--    round()    round (like normal, 5 up, and 1-4 down)
+--    truncate() round (need a second argument to specify precision)
+select ceil(72.445), floor(72.445), round(3.14), truncate(12.54, 1);
+
+/* Output:
++--------------+---------------+-------------+--------------------+
+| ceil(72.445) | floor(72.445) | round(3.14) | truncate(12.54, 1) |
++--------------+---------------+-------------+--------------------+
+|           73 |            72 |           3 |               12.5 |
++--------------+---------------+-------------+--------------------+
+*/
+
+-- 15: Round with optional argument
+select round(72.0909, 1), round(72.0909, 2), round(72.0909, 3);
+
+/* Output:
++-------------------+-------------------+-------------------+
+| round(72.0909, 1) | round(72.0909, 2) | round(72.0909, 3) |
++-------------------+-------------------+-------------------+
+|              72.1 |             72.09 |            72.091 |
++-------------------+-------------------+-------------------+
+1 row in set (0.00 sec)
+*/
+
+
+
+
+
+
