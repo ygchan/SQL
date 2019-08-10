@@ -150,4 +150,30 @@ select strcmp('12345', '12345') 12345_12345, --  0 (identfical)
 1 row in set (0.00 sec)
 */
 
+-- 08: Like expression and regexp expression 
+-- Other function that compare strings, build expressions that return 0 as false
+-- and 1 as true.
+select name, name like '%ns' ends_in_ns
+from department;
+
+/* Output:
++----------------+------------+
+| name           | ends_in_ns |
++----------------+------------+
+| Operations     |          1 |
+| Loans          |          1 |
+| Administration |          0 |
++----------------+------------+
+3 rows in set (0.00 sec)
+*/
+
+select cust_id, cust_type_cd, fed_id,
+   fed_id regexp '.{3}-.{2}-.{4}' is_ss_no_format
+from customer;
+
+-- 09: String functions that return strings
+delete from string_tbl;
+
+insert into string_tbl (text_fld)
+   values ('This string was 29 characters');
 
