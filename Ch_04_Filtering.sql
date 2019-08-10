@@ -161,7 +161,7 @@ create table some_transcation
    txn_date date,
    account_id smallint unsigned ,
    txn_type_cd char(3),
-   amount float(4, 2),
+   amount float(12, 2),
    constraint pk_txn_id primary key (txn_id)
 );
 
@@ -190,30 +190,67 @@ insert into some_transcation (txn_date, account_id, txn_type_cd, amount)
 /* Output:
 mysql> select *
     -> from some_transcation;
-+--------+------------+------------+-------------+--------+
-| txn_id | txn_date   | account_id | txn_type_cd | amount |
-+--------+------------+------------+-------------+--------+
-|      1 | 2005-02-22 |        101 | CDT         |  99.99 |
-|      2 | 2005-02-23 |        102 | CDT         |  99.99 |
-|      3 | 2005-02-24 |        101 | DBT         |  99.99 |
-|      4 | 2005-02-24 |        103 | CDT         |  55.00 |
-|      5 | 2005-02-25 |        101 | DBT         |  50.00 |
-|      6 | 2005-02-25 |        103 | DBT         |  25.00 |
-|      7 | 2005-02-25 |        102 | CDT         |  99.99 |
-|      8 | 2005-02-26 |        103 | DBT         |  10.00 |
-|      9 | 2005-02-27 |        101 | CDT         |  75.00 |
-+--------+------------+------------+-------------+--------+
++--------+------------+------------+-------------+---------+
+| txn_id | txn_date   | account_id | txn_type_cd | amount  |
++--------+------------+------------+-------------+---------+
+|      1 | 2005-02-22 |        101 | CDT         | 1000.00 |
+|      2 | 2005-02-23 |        102 | CDT         |  525.75 |
+|      3 | 2005-02-24 |        101 | DBT         |  100.00 |
+|      4 | 2005-02-24 |        103 | CDT         |   55.00 |
+|      5 | 2005-02-25 |        101 | DBT         |   50.00 |
+|      6 | 2005-02-25 |        103 | DBT         |   25.00 |
+|      7 | 2005-02-25 |        102 | CDT         |  125.37 |
+|      8 | 2005-02-26 |        103 | DBT         |   10.00 |
+|      9 | 2005-02-27 |        101 | CDT         |   75.00 |
++--------+------------+------------+-------------+---------+
 9 rows in set (0.00 sec)
 */
 
 -- Test your knowledge!!
--- 4.1 
 
+-- 4.1 Which of the transcation ID will be returned by the following condition?
+-- txn_date < '2005-02-26' and (txn_type_cd = 'DBT' or amount > 100)
+-- txn_id: 1, 2, 3, 5, 6, 7
 
+-- 4.2 Which of the transcation ID will be returned by the following condition?
+-- account_id in (101, 103) and not (txn_typ_cd = 'DBT' or amount > 100)
+-- txn_id: 4, 9
 
+-- 4.3 Write a query that retrives all account opened in 2002
+select account_id, open_date
+from account
+where year(open_date) = 2002;
+/* Or you can also do 
+where open_date between '2002-01-01' and '2002-12-31';
+*/
 
+/* Output:
++------------+------------+
+| account_id | open_date  |
++------------+------------+
+|          7 | 2002-11-23 |
+|          8 | 2002-12-15 |
+|         14 | 2002-08-24 |
+|         24 | 2002-09-30 |
+|         25 | 2002-10-01 |
++------------+------------+
+*/
 
+-- 4.4 Write a query that find all nonbusiness customers whose last name
+-- contains an a in the second position and an e anywhere after a.
+select c.cust_id, c.cust_type_cd, 
+   i.fname, i.lname
+from customer c
+   inner join individual i on (c.cust_id = i.cust_id)
+where c.cust_type_cd <> 'B'
+   and i.lname like '_a%e%';
 
-
-
-
+/* Output:
++---------+--------------+---------+--------+
+| cust_id | cust_type_cd | fname   | lname  |
++---------+--------------+---------+--------+
+|       1 | I            | James   | Hadley |
+|       9 | I            | Richard | Farley |
++---------+--------------+---------+--------+
+2 rows in set (0.00 sec)
+*/
