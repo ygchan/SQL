@@ -127,12 +127,98 @@ select e.fname, e.lname,
 from employee e 
 	inner join employee e_mgr on (e.superior_emp_id = e_mgr.emp_id);
 
+-- 07: Non_equi-join
+select e.emp_id, e.fname, e.lname, e.start_date
+from employee e
+	inner join product p on (e.start_date >= p.date_offered and e.start_date <= p.date_retired)
+where p.name = 'no-fee checking';
 
+-- 08: Create an interesting chesse tournament matchup
+-- They can't play against themselves, so hence != emp_id.
+select e1.fname, e1.lname, 'VS' vs, e2.fname, e2.lname
+from employee e1 
+	/* Using the > operator, it reduced the reversed pair effect */
+	inner join employee e2 on (e1.emp_id > e2.emp_id)
+where e1.title = 'Teller'
+	and e2.title = 'Teller';
 
+-- Test your knowledge!!
 
+-- 5.1 Fill in the blanks
+select e.emp_id, e.fname, e.lname, b.name
+from employee e
+	inner join branch b on (e.assigned_Branch_id = b.branch_id);
 
+/* Output:
++--------+----------+-----------+---------------+
+| emp_id | fname    | lname     | name          |
++--------+----------+-----------+---------------+
+|      1 | Michael  | Smith     | Headquarters  |
+|      2 | Susan    | Barker    | Headquarters  |
+|      3 | Robert   | Tyler     | Headquarters  |
+|      4 | Susan    | Hawthorne | Headquarters  |
+|      5 | John     | Gooding   | Headquarters  |
+|      6 | Helen    | Fleming   | Headquarters  |
+|      7 | Chris    | Tucker    | Headquarters  |
+|      8 | Sarah    | Parker    | Headquarters  |
+|      9 | Jane     | Grossman  | Headquarters  |
+|     10 | Paula    | Roberts   | Woburn Branch |
+|     11 | Thomas   | Ziegler   | Woburn Branch |
+|     12 | Samantha | Jameson   | Woburn Branch |
+|     13 | John     | Blake     | Quincy Branch |
+|     14 | Cindy    | Mason     | Quincy Branch |
+|     15 | Frank    | Portman   | Quincy Branch |
+|     16 | Theresa  | Markham   | So. NH Branch |
+|     17 | Beth     | Fowler    | So. NH Branch |
+|     18 | Rick     | Tulman    | So. NH Branch |
++--------+----------+-----------+---------------+
+18 rows in set (0.00 sec)
+*/
 
+-- 5.2 Write a query that returns the account ID for each nonbusiness
+-- customer (customer.cust_type_cd = 'I') with customer's federal ID 
+-- (customer.fed_id) and the name of the product which the account is based.
+-- (product.name)
+select a.account_id, c.cust_type_cd, c.fed_id, p.name
+from customer c
+	inner join account a on (c.cust_id = a.cust_id)
+	inner join product p on (a.product_cd = p.product_cd)
+where c.cust_type_cd = 'I'
+order by a.account_id;
 
+/* Output:
++------------+--------------+-------------+------------------------+
+| account_id | cust_type_cd | fed_id      | name                   |
++------------+--------------+-------------+------------------------+
+|          1 | I            | 111-11-1111 | checking account       |
+|          2 | I            | 111-11-1111 | savings account        |
+|          3 | I            | 111-11-1111 | certificate of deposit |
+|          4 | I            | 222-22-2222 | checking account       |
+|          5 | I            | 222-22-2222 | savings account        |
+|          7 | I            | 333-33-3333 | checking account       |
+|          8 | I            | 333-33-3333 | money market account   |
+|         10 | I            | 444-44-4444 | checking account       |
+|         11 | I            | 444-44-4444 | savings account        |
+|         12 | I            | 444-44-4444 | money market account   |
+|         13 | I            | 555-55-5555 | checking account       |
+|         14 | I            | 666-66-6666 | checking account       |
+|         15 | I            | 666-66-6666 | certificate of deposit |
+|         17 | I            | 777-77-7777 | certificate of deposit |
+|         18 | I            | 888-88-8888 | checking account       |
+|         19 | I            | 888-88-8888 | savings account        |
+|         21 | I            | 999-99-9999 | checking account       |
+|         22 | I            | 999-99-9999 | money market account   |
+|         23 | I            | 999-99-9999 | certificate of deposit |
++------------+--------------+-------------+------------------------+
+*/
+
+-- 5.3 Write a query to find all employee whose supervisor is assigned to a
+-- different department. 
+select e.emp_id, e.fname, e.lname, e.dept_id, 
+	e.superior_emp_id, e.fname, e.lname, e_sup.dept_id
+from employee e
+	inner join employee e_sup on (e.superior_emp_id = e_sup.emp_id)
+where e.dept_id != e_sup.dept_id;
 
 
 
