@@ -399,3 +399,73 @@ select extract(year from '2019-08-12');
 -- 26: difference between two days (how many full days?)
 select datediff(current_date(), '1990-01-01');
 
+-- 27: Conversion functions
+-- Convert string to number, (You must be signed/unsigned)
+select cast('12345' as signed integer);
+
+-- It will convert from left to right as much as it can
+select cast('12345andthennothing' as signed integer);
+
+/* Output:
+mysql> select cast('12345andthennothing' as signed integer);
++-----------------------------------------------+
+| cast('12345andthennothing' as signed integer) |
++-----------------------------------------------+
+|                                         12345 |
++-----------------------------------------------+
+1 row in set, 1 warning (0.00 sec)
+
+mysql> show warnings;
++---------+------+----------------------------------------------------------+
+| Level   | Code | Message                                                  |
++---------+------+----------------------------------------------------------+
+| Warning | 1292 | Truncated incorrect INTEGER value: '12345andthennothing' |
++---------+------+----------------------------------------------------------+
+1 row in set (0.00 sec)
+*/
+
+-- If your date/datetime isn't a default format
+-- Then you MUST use str_to_date() function with format string
+
+-- Test your knowledge!!
+
+-- 7.1 Write a query that returns the 17th to 25th characters of the string
+-- 'Please find the substring in this string'
+select substr('Please find the substring in this string', 17, 9);
+
+/* Output:
++-----------------------------------------------------------+
+| substr('Please find the substring in this string', 17, 9) |
++-----------------------------------------------------------+
+| substring                                                 |
++-----------------------------------------------------------+
+1 row in set (0.00 sec)
+*/
+
+-- 7.2 Write a query that returns the absolute value and sign (-1, 0, or 1)
+-- of the number -25.76823, also return the number rounded to the nearest 
+-- hundredth.
+select sign(-25.76823) num_sign,
+   abs(-25.76823) num_abs,
+   round(-25.76823, 2) num_round;
+
+/* Output:
++----------+----------+-----------+
+| num_sign | num_abs  | num_round |
++----------+----------+-----------+
+|       -1 | 25.76823 |    -25.77 |
++----------+----------+-----------+
+1 row in set (0.00 sec)
+*/
+
+-- 7.3 Write a query that returns just the month portion of current date.
+select extract(month from current_date()) my_month;
+
+/* Output:
++----------+
+| my_month |
++----------+
+|        8 |
++----------+
+1 row in set (0.00 sec)
+*/
