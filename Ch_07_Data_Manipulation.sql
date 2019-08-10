@@ -334,4 +334,68 @@ update individual
    set birth_date = str_to_date('Septembe 18, 2008', '%M %d, %Y')
    where cust_id = 9999;
 
+-- 20: If you want current date/ time/ timestamp()
+-- There are functions for you to use
+select current_date(), current_time(), current_timestamp();
+
+/* Output:
++----------------+----------------+---------------------+
+| current_date() | current_time() | current_timestamp() |
++----------------+----------------+---------------------+
+| 2019-08-10     | 13:38:42       | 2019-08-10 13:38:42 |
++----------------+----------------+---------------------+
+1 row in set (0.01 sec)
+*/
+
+-- 21: How to add 5 days to the current date
+select date_add(current_date(), interval 5 day);
+
+/* Output:
++------------------------------------------+
+| date_add(current_date(), interval 5 day) |
++------------------------------------------+
+| 2019-08-15                               |
++------------------------------------------+
+1 row in set (0.00 sec)
+*/
+
+-- 22: More examples
+update transcation
+   set txn_date = date_add(txn_date, interval '3:27:11' hour_second)
+   where txn_id = 9999;
+
+update employee
+   set birth_date = date_add(birth_date, interval '9-11' year_month)
+   where emp_id = 4789;
+
+-- 23: last date
+-- This can be difficult (tricky) to implement to figure out leap year/feb.
+select last_day(current_date());
+
+/* Output:
++--------------------------+
+| last_day(current_date()) |
++--------------------------+
+| 2019-08-31               |
++--------------------------+
+1 row in set (0.01 sec)
+*/
+
+-- 24: Temporal functions that returns strings
+select dayname('2019-08-12');
+
+/* Output:
++-----------------------+
+| dayname('2019-08-12') |
++-----------------------+
+| Monday                |
++-----------------------+
+1 row in set (0.01 sec)
+*/
+
+-- 25: extract function
+select extract(year from '2019-08-12');
+
+-- 26: difference between two days (how many full days?)
+select datediff(current_date(), '1990-01-01');
 
