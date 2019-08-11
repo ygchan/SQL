@@ -43,3 +43,15 @@
 --    extract(),       ex: extract(year from '2018-05-01')
 --    datediff(),      ex: datediff(current_date(), '1999-01-01')
 --    cast(),          ex: cast('1234' as unsigned integer)
+
+-- Chapter 8: Grouping and Aggregates
+--    Group By
+--    count(*) vs. count(value)
+--    having count(*)
+--    max, min, avg, count
+--    impolicit vs. explicit groups
+--    count(distinct membno)
+--    using expression in Aggregates
+--    single column grouping
+--    multiple columns grouping
+--    rollups          ex: group by a, b with rollup
