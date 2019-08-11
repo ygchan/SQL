@@ -251,7 +251,20 @@ where 2 = (
    select count(*)
    from account a
    where a.cust_id = c.cust_id
-)
+);
+
+/* Output:
++---------+--------------+---------+
+| cust_id | cust_type_cd | city    |
++---------+--------------+---------+
+|       2 | I            | Woburn  |
+|       3 | I            | Quincy  |
+|       6 | I            | Waltham |
+|       8 | I            | Salem   |
+|      10 | B            | Salem   |
++---------+--------------+---------+
+5 rows in set (0.01 sec)
+*/
 
 -- The subquery here is correlated to the row being consider by
 -- the containing query.
@@ -263,5 +276,103 @@ where 2 = (
 -- and excecute once for each customer, passing the appropriate customer
 -- id for each execution, if the subquery returns value 2, then the filter
 -- condition is met and the row is added to the result set.
+
+-- 07: Another example (Simplier)
+select c.cust_id, c.cust_type_cd, c.city
+from customer c
+where (
+   select sum(a.avail_balance)
+   from account a
+   where a.cust_id = c.cust_id
+) between 5000 and 10000;
+
+/* Output:
++---------+--------------+------------+
+| cust_id | cust_type_cd | city       |
++---------+--------------+------------+
+|       4 | I            | Waltham    |
+|       7 | I            | Wilmington |
+|      11 | B            | Wilmington |
++---------+--------------+------------+
+3 rows in set (0.01 sec)
+*/
+
+-- The correlated subquery is an advanced feature, allow you to execute
+-- the containing query once, and the subquery will be running for each account.
+
+-- 08: Exists Operator
+
+select a.account_id, a.product_cd, a.cust_id, a.avail_balance
+from account a
+/* All the transcation occured on '2008-09-22' */
+where exists (
+   select 1
+   from transaction t
+   where t.account_id = a.account_id
+      and t.txn_date = '2008-09-22'
+);
+
+-- The most common operator used to build conditinos that utilize correlated
+-- subqueries is the exists operator.
+
+-- You use it when you want to identify that a relationship exists without
+-- regard for the condition
+
+-- 09: Subqueries are used heavily in update, delete and insert
+
+-- This query modify the last_activity_date of every row
+-- by finding the latest transaction date for each account.
+update account a
+   set a.last_activity_date =
+   (
+      select max(t.txn_date)
+      from transcation t
+      where t.account_id = a.account_id
+   );
+
+-- 10: Update query using subqueries
+update account a
+   set a.last_activity_date =
+   (
+      select max(t.txn_date)
+      from transcation t
+      where t.account_id = a.ccount_id
+   )
+   /* This is new to me, and it is really handy! */
+   /* Select a True value (since anything other 0) is True, if the account id
+      matches with transcation table. This also protect against null. */
+   where exists (
+      select 1
+      from transcation t
+      where t.account_id = a.account_id
+   );
+
+-- In MySQL, table aliases are not allowed in delete statement.
+-- That's why author referred to the full table name.
+delete from department 
+   where not exists (
+      select 1 
+      from employee
+      where employee.dept_id = department.dept_id
+   );
+
+-- 11: More examples on how to contruct table, build conditions and generate
+-- columns using subqueries.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
