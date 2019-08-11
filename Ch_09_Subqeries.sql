@@ -386,10 +386,70 @@ from department d
 -- They are executed first and the data is hel in memory until the containing
 -- query finishes execution.
 
+-- Data Fabrication
+-- Some Customer Balance Groups
+-- Group name    | Lower Limit       | Upper Limit
+-- Small         | 0                 | $4,999.99
+-- Average       | $5,000            | $9,999.99
+-- Large         | $10,000           | $9,999,999.99
 
+-- Define your group using union
+select 'Small' name, 0 low_limit, 4999.9 high_limit
+union all
+select 'Average' name, 5000 low_limit, 9999.99 high_limit
+union all
+select 'Large' name, 10000 low_limit, 9999999.99 high_limit;
 
+/* Output:
++---------+-----------+------------+
+| name    | low_limit | high_limit |
++---------+-----------+------------+
+| Small   |         0 |    4999.90 |
+| Average |      5000 |    9999.99 |
+| Large   |     10000 | 9999999.99 |
++---------+-----------+------------+
+3 rows in set (0.02 sec)
+*/
 
+-- Now let's write a query that will count the groups
+select groups.name, count(*) num_customers
+from (
+   select sum(a.avail_balance) cust_balance
+   from account a 
+      inner join product p on (a.product_cd = p.product_cd)
+   where p.product_type_cd = 'ACCOUNT'
+   group by a.cust_id
+) cust_rollup
+inner join (
+   select 'Small' name, 0 low_limit, 4999.9 high_limit
+   union all
+   select 'Average' name, 5000 low_limit, 9999.99 high_limit
+   union all
+   select 'Large' name, 10000 low_limit, 9999999.99 high_limit
+) groups on (cust_rollup.cust_balance between groups.low_limit 
+   and groups.high_limit
+)
+group by groups.name;
 
+/* Output:
++---------+---------------+
+| name    | num_customers |
++---------+---------------+
+| Average |             2 |
+| Large   |             4 |
+| Small   |             5 |
++---------+---------------+
+3 rows in set (0.00 sec)
+*/
+
+-- Although you can build a permanent table to hold the group definitions, the
+-- author suggested to think twice about it. Because very qickly you will find
+-- your database littered with many special purpose table after a while
+-- and you won't remember the reason for which most of them are created for.
+-- This also created a problem with memory storage allocation issue, and also
+-- table lost during server upgrade.
+
+-- For example like above, it is better to create a temp subquery table. 
 
 
 
