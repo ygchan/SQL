@@ -356,11 +356,35 @@ delete from department
       where employee.dept_id = department.dept_id
    );
 
--- 11: More examples on how to contruct table, build conditions and generate
+-- More examples on how to contruct table, build conditions and generate
 -- columns using subqueries.
 
+-- 11: Subquery as data source
 
+-- This query returns the department id, department name and the count of 
+-- employee belongs to that department.
+select d.dept_id, d.name, e_cnt.how_many num_employees
+from department d
+   inner join (
+      select dept_id, count(*) how_many
+      from employee
+      group by dept_id
+   ) e_cnt on (d.dept_id = e_cnt.dept_id);
 
+/* Output:
++---------+----------------+---------------+
+| dept_id | name           | num_employees |
++---------+----------------+---------------+
+|       1 | Operations     |            14 |
+|       2 | Loans          |             1 |
+|       3 | Administration |             3 |
++---------+----------------+---------------+
+3 rows in set (0.01 sec)
+*/
+
+-- Note: Subqueries used in the from clause must be non-correlated. 
+-- They are executed first and the data is hel in memory until the containing
+-- query finishes execution.
 
 
 
