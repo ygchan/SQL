@@ -239,6 +239,29 @@ where (open_branch_id, open_emp_id) in (
       and e.title in ('Teller', 'Head Teller')
 );
 
+-- *** NEW ***
+-- Correlated Subqueries
 
+-- This query uses a correlated subquery to count the number of accounts for 
+-- each customer, and the containing query then retrieves those customers
+-- having exactly 2 account
+select c.cust_id, c.cust_type_cd, c.city
+from customer c
+where 2 = (
+   select count(*)
+   from account a
+   where a.cust_id = c.cust_id
+)
+
+-- The subquery here is correlated to the row being consider by
+-- the containing query.
+-- The reference to the c.cust_id at the end, is what makes this subquery 
+-- correlated, the containing query must supply values for c.cust_id
+-- for the subquery to execute.
+
+-- The containing query retrieves all 13 rows from the customer table,
+-- and excecute once for each customer, passing the appropriate customer
+-- id for each execution, if the subquery returns value 2, then the filter
+-- condition is met and the row is added to the result set.
 
 
