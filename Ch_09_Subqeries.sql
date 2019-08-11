@@ -519,3 +519,212 @@ having count(*) = (
    ) emp_cnt
 );
 
+-- 14: Subqueries as expression generator - correlated subquery
+select (
+      select p.name
+      from product p
+      where p.product_cd = a.product_cd
+         and p.product_type_cd = 'ACCOUNT' 
+   ) product,
+   (
+      select b.name 
+      from branch b
+      where b.branch_id = a.open_branch_id
+   ) branch,
+   (
+      select concat(e.fname, ' ', e.lname)
+      from employee e
+      where e.emp_id = a.open_emp_id
+   ) name,
+   sum(a.avail_balance) tot_deposits
+from account a
+group by a.product_cd, a.open_branch_id, a.open_emp_id
+order by 1, 2;
+
+-- Query that sort by the last name of the employee's bosses, and then 
+-- the employee's last name.
+
+select emp.emp_id, concat(emp.fname, ' ', emp.lname) emp_name,
+   (
+      select concat(boss.fname, ' ', boss.lname)
+      from employee boss
+      where boss.emp_id = emp.superior_emp_id 
+   ) boss_name
+   from employee emp
+   where emp.superior_emp_id is not null
+   order by (
+      select boss.lname
+      from employee boss
+      where boss.emp_id = emp.superior_emp_id
+   ), emp.lname;
+
+/* Output:
++--------+------------------+-----------------+
+| emp_id | emp_name         | boss_name       |
++--------+------------------+-----------------+
+|     14 | Cindy Mason      | John Blake      |
+|     15 | Frank Portman    | John Blake      |
+|      9 | Jane Grossman    | Helen Fleming   |
+|      8 | Sarah Parker     | Helen Fleming   |
+|      7 | Chris Tucker     | Helen Fleming   |
+|     13 | John Blake       | Susan Hawthorne |
+|      6 | Helen Fleming    | Susan Hawthorne |
+|      5 | John Gooding     | Susan Hawthorne |
+|     16 | Theresa Markham  | Susan Hawthorne |
+|     10 | Paula Roberts    | Susan Hawthorne |
+|     17 | Beth Fowler      | Theresa Markham |
+|     18 | Rick Tulman      | Theresa Markham |
+|     12 | Samantha Jameson | Paula Roberts   |
+|     11 | Thomas Ziegler   | Paula Roberts   |
+|      2 | Susan Barker     | Michael Smith   |
+|      3 | Robert Tyler     | Michael Smith   |
+|      4 | Susan Hawthorne  | Robert Tyler    |
++--------+------------------+-----------------+
+*/
+
+-- 15: How to insert a new row into the account table with 4 foreign keys?
+insert into account (account_id, product_cd, cust_id, open_date, 
+   last_activity_date, status, open_branch_id, open_emp_id, avail_balance, 
+   pending_balance)
+values (null,
+   -- product code
+   (select product_cd from product where name = 'saving acount'),
+   -- customer id
+   (select cust_id from customer where fed_id ='555-55-5555'),
+   -- open date, last_activity_date, status
+   '2008-09-25', '2008-09-25', 'ACTIVE',
+   -- open branch iD
+   (select branch_id from branch where name = 'Quincy Branch'),
+   (select emp_id from employee where lname = 'Portman' and fname = 'Frank'),
+   0, 0
+);
+
+-- Test your knowledge!!
+
+-- 9.1 Construct a query against the account table that uses a filter condition
+-- with non-correlated subquery against the product table to find all loan 
+-- accounts (product.product_type_cd = 'LOAN').
+-- Retrieve the account id, product code, customer id and available balance
+
+select a.account_id, a.product_cd, a.avail_balance
+from account a
+where product_cd = any (
+   select p.product_cd
+   from product p
+   where product_type_cd = 'LOAN'
+);
+
+/* Output:
++------------+------------+---------------+
+| account_id | product_cd | avail_balance |
++------------+------------+---------------+
+|         25 | BUS        |          0.00 |
+|         27 | BUS        |       9345.55 |
+|         29 | SBL        |      50000.00 |
++------------+------------+---------------+
+3 rows in set (0.00 sec)
+*/
+
+-- 9.2 Rework the query from 9.1 using correlated subquery against the product
+-- table to achieve the same results.
+
+select a.account_id, a.product_cd, a.avail_balance
+from account a
+where exists (
+   select 1
+   from product p
+   where a.product_cd = p.product_cd
+      and p.product_type_cd = 'LOAN'
+);
+
+/* Output:
++------------+------------+---------------+
+| account_id | product_cd | avail_balance |
++------------+------------+---------------+
+|         25 | BUS        |          0.00 |
+|         27 | BUS        |       9345.55 |
+|         29 | SBL        |      50000.00 |
++------------+------------+---------------+
+3 rows in set (0.01 sec)
+*/
+
+-- 9.3 Join the following query to the employee table to show experience
+-- level of each employee.
+
+select 'trainee' name, '2004-01-01' start_dt, '2005-12-31' end_dt
+union all
+select 'worker' name, '2002-01-01' start_dt, '2003-12-31' end_dt
+union all
+select 'mentor' name, '2000-01-01' start_dt, '2001-12-31' end_dt;
+
+select e.emp_id, e.fname, e.lname, levels.name
+from employee e
+   inner join (
+      select 'trainee' name, '2004-01-01' start_dt, '2005-12-31' end_dt
+      union all
+      select 'worker' name, '2002-01-01' start_dt, '2003-12-31' end_dt
+      union all
+      select 'mentor' name, '2000-01-01' start_dt, '2001-12-31' end_dt
+   ) levels on (e.start_date between levels.start_dt and levels.end_dt);
+
+/* Output:
++--------+----------+-----------+---------+
+| emp_id | fname    | lname     | name    |
++--------+----------+-----------+---------+
+|      1 | Michael  | Smith     | mentor  |
+|      2 | Susan    | Barker    | worker  |
+|      3 | Robert   | Tyler     | mentor  |
+|      4 | Susan    | Hawthorne | worker  |
+|      5 | John     | Gooding   | worker  |
+|      6 | Helen    | Fleming   | trainee |
+|      7 | Chris    | Tucker    | trainee |
+|      8 | Sarah    | Parker    | worker  |
+|      9 | Jane     | Grossman  | worker  |
+|     10 | Paula    | Roberts   | worker  |
+|     11 | Thomas   | Ziegler   | mentor  |
+|     12 | Samantha | Jameson   | worker  |
+|     13 | John     | Blake     | mentor  |
+|     14 | Cindy    | Mason     | worker  |
+|     15 | Frank    | Portman   | worker  |
+|     16 | Theresa  | Markham   | mentor  |
+|     17 | Beth     | Fowler    | worker  |
+|     18 | Rick     | Tulman    | worker  |
++--------+----------+-----------+---------+
+18 rows in set (0.00 sec)
+*/
+
+-- 9.4 Construct a query against the employee table that retrieves the employee 
+-- ID, fname, lname along with the name of the department and branch to which 
+-- employee is assigned. Do not use any tables.
+
+select e.emp_id, e.fname, e.lname,
+   (select d.name from department d where e.dept_id = d.dept_id) dept_name,
+   (select b.name from branch b 
+    where e.assigned_branch_id = b.branch_id) branch_name
+from employee e;
+
+/* Output:
++--------+----------+-----------+----------------+---------------+
+| emp_id | fname    | lname     | dept_name      | branch_name   |
++--------+----------+-----------+----------------+---------------+
+|      1 | Michael  | Smith     | Administration | Headquarters  |
+|      2 | Susan    | Barker    | Administration | Headquarters  |
+|      3 | Robert   | Tyler     | Administration | Headquarters  |
+|      4 | Susan    | Hawthorne | Operations     | Headquarters  |
+|      5 | John     | Gooding   | Loans          | Headquarters  |
+|      6 | Helen    | Fleming   | Operations     | Headquarters  |
+|      7 | Chris    | Tucker    | Operations     | Headquarters  |
+|      8 | Sarah    | Parker    | Operations     | Headquarters  |
+|      9 | Jane     | Grossman  | Operations     | Headquarters  |
+|     10 | Paula    | Roberts   | Operations     | Woburn Branch |
+|     11 | Thomas   | Ziegler   | Operations     | Woburn Branch |
+|     12 | Samantha | Jameson   | Operations     | Woburn Branch |
+|     13 | John     | Blake     | Operations     | Quincy Branch |
+|     14 | Cindy    | Mason     | Operations     | Quincy Branch |
+|     15 | Frank    | Portman   | Operations     | Quincy Branch |
+|     16 | Theresa  | Markham   | Operations     | So. NH Branch |
+|     17 | Beth     | Fowler    | Operations     | So. NH Branch |
+|     18 | Rick     | Tulman    | Operations     | So. NH Branch |
++--------+----------+-----------+----------------+---------------+
+18 rows in set (0.00 sec)
+*/
