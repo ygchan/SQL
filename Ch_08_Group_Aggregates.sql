@@ -237,7 +237,139 @@ group by extract(year from start_date);
 +------+----------+
 */
 
+-- 12. Rollup, the total of each product/branch combination
+select product_cd, open_branch_id,
+   sum(avail_balance) tot_balance
+from account
+group by product_cd, open_branch_id with rollup;
 
+/* Output:
++------------+----------------+-------------+
+| product_cd | open_branch_id | tot_balance |
++------------+----------------+-------------+
+| BUS        |              2 |     9345.55 |
+| BUS        |              4 |        0.00 |
+| BUS        |           NULL |     9345.55 |
+| CD         |              1 |    11500.00 |
+| CD         |              2 |     8000.00 |
+| CD         |           NULL |    19500.00 |
+| CHK        |              1 |      782.16 |
+| CHK        |              2 |     3315.77 |
+| CHK        |              3 |     1057.75 |
+| CHK        |              4 |    67852.33 |
+| CHK        |           NULL |    73008.01 |
+| MM         |              1 |    14832.64 |
+| MM         |              3 |     2212.50 |
+| MM         |           NULL |    17045.14 |
+| SAV        |              1 |      767.77 |
+| SAV        |              2 |      700.00 |
+| SAV        |              4 |      387.99 |
+| SAV        |           NULL |     1855.76 |
+| SBL        |              3 |    50000.00 |
+| SBL        |           NULL |    50000.00 |
+| NULL       |           NULL |   170754.46 |
++------------+----------------+-------------+
+21 rows in set (0.00 sec)
+*/
+
+-- The null value is provided for the open_branch_id column, 
+-- These are your product/branch total
+-- For Grand Total, you will see null, null for both column.
+
+-- If you want to rollup on a subset of the columns in the group by clause
+-- group by a, rollup(b, c) <- This is for Oracle only.
+
+-- 13: Group filter conditions
+-- where filter columns, and having filter groups
+select product_cd, sum(avail_balance) prod_balance
+from account
+where status = 'ACTIVE'
+group by product_cd
+having sum(avail_balance) >= 10000;
+
+-- 14: Lastly, you may include aggregate function in the having clause
+-- that do not appear in the select clause
+
+-- Write a query to get the product code, and sum of balance
+-- for accounts with active status and between 1000 and 100000 balance.
+select product_cd, sum(avail_balance) prod_balance
+from account
+where status = 'ACTIVE'
+group by product_cd
+having min(avail_balance) >= 1000
+   and max(avail_balance) <= 10000;
+
+-- Test your knowledge!!
+
+-- 8.1 Write a query that counts number of rows in the account table
+select count(*) num_rows
+from account;
+
+/* Output:
++----------+
+| num_rows |
++----------+
+|       24 |
++----------+
+1 row in set (0.01 sec)
+*/
+
+-- 8.2 Modify your query to count the number of accounts held by each
+-- customer. Show the customer ID and number of accounts for each customer
+select cust_id, count(account_id) num_of_accounts
+from account
+group by cust_id;
+
+/* Output:
++---------+-----------------+
+| cust_id | num_of_accounts |
++---------+-----------------+
+|       1 |               3 |
+|       2 |               2 |
+|       3 |               2 |
+|       4 |               3 |
+|       5 |               1 |
+|       6 |               2 |
+|       7 |               1 |
+|       8 |               2 |
+|       9 |               3 |
+|      10 |               2 |
+|      11 |               1 |
+|      12 |               1 |
+|      13 |               1 |
++---------+-----------------+
+*/
+
+-- 8.3 Modify your query to include whose customers with at least 2 accounts
+select cust_id, count(account_id) num_of_accounts
+from account
+group by cust_id
+having count(account_id) >= 2;
+
+/* Output:
++---------+-----------------+
+| cust_id | num_of_accounts |
++---------+-----------------+
+|       1 |               3 |
+|       2 |               2 |
+|       3 |               2 |
+|       4 |               3 |
+|       6 |               2 |
+|       8 |               2 |
+|       9 |               3 |
+|      10 |               2 |
++---------+-----------------+
+8 rows in set (0.00 sec)
+*/
+
+-- 8.4 Find the total available balance by product and branch
+-- where there is more than one account per product and branch.
+-- Order the results by total balance (highest to lowest)
+select product_cd, open_branch_id, sum(avail_balance)
+from account
+group by product_cd, open_branch_id
+having count(*) > 1
+order by 3 desc;
 
 
 
