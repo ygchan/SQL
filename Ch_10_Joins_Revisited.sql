@@ -508,4 +508,230 @@ order by dt;
 +------------+
 */
 
--- 05: 
+-- 05: Natural Join, let the server figure it out
+-- Probably will (should) never use it. Skipped.
+
+select a.account_id, a.cust_id, c.cust_type_cd, c.fed_id
+from account a
+   natural join customer c;
+
+-- Even if it works / really simple, always use explicit join.
+
+-- Test your knowledge!!
+
+-- 10.1 Write a query that returns all the product name alog with the account
+-- based on that product (use the product_cd column in the account table to
+-- link to link to the that product.)
+-- Include all products, even if no accounts have been opened for that product.
+select p.name, a.account_id
+from product p
+   left join account a on (p.product_cd = a.product_cd);
+
+/* Output:
++-------------------------+------------+
+| name                    | account_id |
++-------------------------+------------+
+| auto loan               |       NULL |
+| business line of credit |         25 |
+| business line of credit |         27 |
+| certificate of deposit  |          3 |
+| certificate of deposit  |         15 |
+| certificate of deposit  |         17 |
+| certificate of deposit  |         23 |
+| checking account        |          1 |
+| checking account        |          4 |
+| checking account        |          7 |
+| checking account        |         10 |
+| checking account        |         13 |
+| checking account        |         14 |
+| checking account        |         18 |
+| checking account        |         21 |
+| checking account        |         24 |
+| checking account        |         28 |
+| money market account    |          8 |
+| money market account    |         12 |
+| money market account    |         22 |
+| home mortgage           |       NULL |
+| savings account         |          2 |
+| savings account         |          5 |
+| savings account         |         11 |
+| savings account         |         19 |
+| small business loan     |         29 |
++-------------------------+------------+
+26 rows in set (0.00 sec)
+*/
+
+-- 10.2 Reformulate your query from 10-1 to use the other join.
+-- Make sure the result is the same.
+select p.name, a.account_id
+from account a 
+   right join product p on (a.product_cd = p.product_cd);
+
+/* Output:
++-------------------------+------------+
+| name                    | account_id |
++-------------------------+------------+
+| auto loan               |       NULL |
+| business line of credit |         25 |
+| business line of credit |         27 |
+| certificate of deposit  |          3 |
+| certificate of deposit  |         15 |
+| certificate of deposit  |         17 |
+| certificate of deposit  |         23 |
+| checking account        |          1 |
+| checking account        |          4 |
+| checking account        |          7 |
+| checking account        |         10 |
+| checking account        |         13 |
+| checking account        |         14 |
+| checking account        |         18 |
+| checking account        |         21 |
+| checking account        |         24 |
+| checking account        |         28 |
+| money market account    |          8 |
+| money market account    |         12 |
+| money market account    |         22 |
+| home mortgage           |       NULL |
+| savings account         |          2 |
+| savings account         |          5 |
+| savings account         |         11 |
+| savings account         |         19 |
+| small business loan     |         29 |
++-------------------------+------------+
+26 rows in set (0.00 sec)
+*/
+
+-- 10.3 Outer join the account table to both the individual and business
+-- tables via the account.cust_id column, such taht the result set contains
+-- one row per account.
+select a.account_id, a.product_cd, i.fname, i.lname, b.name
+from account a
+   left join individual i on (a.cust_id = i.cust_id)
+   left join business b on (a.cust_id = b.cust_id);
+
+/* Output:
++------------+------------+----------+---------+------------------------+
+| account_id | product_cd | fname    | lname   | name                   |
++------------+------------+----------+---------+------------------------+
+|         24 | CHK        | NULL     | NULL    | Chilton Engineering    |
+|         25 | BUS        | NULL     | NULL    | Chilton Engineering    |
+|         27 | BUS        | NULL     | NULL    | Northeast Cooling Inc. |
+|         28 | CHK        | NULL     | NULL    | Superior Auto Body     |
+|         29 | SBL        | NULL     | NULL    | AAA Insurance Inc.     |
+|          1 | CHK        | James    | Hadley  | NULL                   |
+|          2 | SAV        | James    | Hadley  | NULL                   |
+|          3 | CD         | James    | Hadley  | NULL                   |
+|          4 | CHK        | Susan    | Tingley | NULL                   |
+|          5 | SAV        | Susan    | Tingley | NULL                   |
+|          7 | CHK        | Frank    | Tucker  | NULL                   |
+|          8 | MM         | Frank    | Tucker  | NULL                   |
+|         10 | CHK        | John     | Hayward | NULL                   |
+|         11 | SAV        | John     | Hayward | NULL                   |
+|         12 | MM         | John     | Hayward | NULL                   |
+|         13 | CHK        | Charles  | Frasier | NULL                   |
+|         14 | CHK        | John     | Spencer | NULL                   |
+|         15 | CD         | John     | Spencer | NULL                   |
+|         17 | CD         | Margaret | Young   | NULL                   |
+|         18 | CHK        | Louis    | Blake   | NULL                   |
+|         19 | SAV        | Louis    | Blake   | NULL                   |
+|         21 | CHK        | Richard  | Farley  | NULL                   |
+|         22 | MM         | Richard  | Farley  | NULL                   |
+|         23 | CD         | Richard  | Farley  | NULL                   |
++------------+------------+----------+---------+------------------------+
+24 rows in set (0.01 sec)
+*/
+
+-- 10.4 Devise a query that will generate the set {1, 2, 3, ..., 99, 100}.
+-- Hint: Use a cross join
+
+-- Version 1
+select sum
+from (
+   select (ones.num + tens.num) sum
+   from (
+      select 0 num union all
+      select 1 num union all
+      select 2 num union all
+      select 3 num union all
+      select 4 num union all
+      select 5 num union all
+      select 6 num union all
+      select 7 num union all
+      select 8 num union all
+      select 9 num
+   ) ones cross join (
+      select 0 num union all
+      select 10 num union all
+      select 20 num union all
+      select 30 num union all
+      select 40 num union all
+      select 50 num union all
+      select 60 num union all
+      select 70 num union all
+      select 80 num union all
+      select 90 num 
+   ) tens
+   where (ones.num + tens.num) > 0
+) a
+union all (
+   select 100 sum 
+);
+
+-- Version 2
+select (ones.num + tens.num + hundreds.num) sum
+from (
+   select 0 num union all
+   select 1 num union all
+   select 2 num union all
+   select 3 num union all
+   select 4 num union all
+   select 5 num union all
+   select 6 num union all
+   select 7 num union all
+   select 8 num union all
+   select 9 num
+) ones cross join (
+   select 0 num union all
+   select 10 num union all
+   select 20 num union all
+   select 30 num union all
+   select 40 num union all
+   select 50 num union all
+   select 60 num union all
+   select 70 num union all
+   select 80 num union all
+   select 90 num 
+) tens cross join (
+   select 0 num union all
+   select 100 num
+) hundreds 
+where (ones.num + tens.num + hundreds.num) >= 1
+   and (ones.num + tens.num + hundreds.num) <= 100
+order by (ones.num + tens.num + hundreds.num);
+
+-- The Book has a even smarter solution
+-- Using the plus 1
+select (ones.num + tens.num) + 1 sum
+from (
+   select 0 num union all
+   select 1 num union all
+   select 2 num union all
+   select 3 num union all
+   select 4 num union all
+   select 5 num union all
+   select 6 num union all
+   select 7 num union all
+   select 8 num union all
+   select 9 num
+) ones cross join (
+   select 0 num union all
+   select 10 num union all
+   select 20 num union all
+   select 30 num union all
+   select 40 num union all
+   select 50 num union all
+   select 60 num union all
+   select 70 num union all
+   select 80 num union all
+   select 90 num 
+) tens;
