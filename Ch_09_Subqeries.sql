@@ -393,7 +393,7 @@ from department d
 -- Average       | $5,000            | $9,999.99
 -- Large         | $10,000           | $9,999,999.99
 
--- Define your group using union
+-- 12: Define your group using union
 select 'Small' name, 0 low_limit, 4999.9 high_limit
 union all
 select 'Average' name, 5000 low_limit, 9999.99 high_limit
@@ -451,12 +451,71 @@ group by groups.name;
 
 -- For example like above, it is better to create a temp subquery table. 
 
+-- Task oriented subqueries
+-- This is a common query for report generating, but it's not efficient.
 
+select p.name product, b.name branch,
+   concat(e.fname, ' ', e.lname) name,
+   sum(a.avail_balance) tot_deposits
+from account a
+   inner join employee e on (a.open_emp_id = e.emp_id)
+   inner join branch b on (a.open_branch_id = b.branch_id)
+   inner join product p on (a.product_cd = p.product_cd)
+where p.product_type_cd = 'ACCOUNT'
+group by p.name, b.name, e.fname, e.lname
+order by 1, 2;
 
+-- The heart of the query
+select product_cd, open_branch_id branch_id, open_emp_id emp_id,
+   sum(avail_balance) tot_deposits
+from account
+group by product_cd, open_branch_id, open_emp_id;
 
+-- Author's version
+-- It looks different, but need time to think if it is better or not.
+select p.name product, b.name branch,
+   concat(e.fname, ' ', e.lname) name,
+   account_groups.tot_deposits
+from (
+   select product_cd, open_branch_id branch_id, open_emp_id emp_id,
+      sum(avail_balance) tot_deposits
+   from account
+   group by product_cd, open_branch_id, open_emp_id
+) account_groups
+   inner join employee e on (e.emp_id = account_groups.emp_id)
+   inner join branch b on (b.branch_id = account_groups.branch_id)
+   inner join product p on (p.product_cd = account_groups.product_cd)
+where p.product_type_cd = 'ACCOUNT';
 
+/* Output:
++------------------------+---------------+-----------------+--------------+
+| product                | branch        | name            | tot_deposits |
++------------------------+---------------+-----------------+--------------+
+| certificate of deposit | Headquarters  | Michael Smith   |     11500.00 |
+| checking account       | Headquarters  | Michael Smith   |       782.16 |
+| money market account   | Headquarters  | Michael Smith   |     14832.64 |
+| savings account        | Headquarters  | Michael Smith   |       767.77 |
+| certificate of deposit | Woburn Branch | Paula Roberts   |      8000.00 |
+| checking account       | Woburn Branch | Paula Roberts   |      3315.77 |
+| savings account        | Woburn Branch | Paula Roberts   |       700.00 |
+| checking account       | Quincy Branch | John Blake      |      1057.75 |
+| money market account   | Quincy Branch | John Blake      |      2212.50 |
+| checking account       | So. NH Branch | Theresa Markham |     67852.33 |
+| savings account        | So. NH Branch | Theresa Markham |       387.99 |
++------------------------+---------------+-----------------+--------------+
+11 rows in set (0.00 sec)
+*/
 
-
-
-
+-- 13: Subqueries in filter conditions
+select open_emp_id, count(*) how_many
+from account
+group by open_emp_id
+having count(*) = (
+   select max(emp_cnt.how_many)
+   from (
+      select count(*) how_many
+      from account
+      group by open_emp_id
+   ) emp_cnt
+);
 
