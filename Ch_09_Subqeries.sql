@@ -112,3 +112,58 @@ where emp_id in (
 +--------+---------+-----------+--------------------+
 7 rows in set (0.01 sec)
 */
+
+-- 04: The all operator
+-- The in operator is used to check an expression can be found within a set
+-- The all operator allows you to make comparisons between a single value
+-- and every value in a set. Note, you have to use all operator in conjunction
+-- with one of the comparison operators (=, <>, >, <, etc)
+
+-- Ex1: = all (subquery statement...)
+-- This is the same as in (subquery)
+
+-- Ex2: <> all (subquery statement...)
+-- This is the same as not in (subquery)
+
+-- Ex3: > all (subquery statement)
+-- This is comparing the expression with all the values returned.
+
+select emp_id, fname, lname, title
+from employee
+where emp_id <> all (
+   select superior_emp_id
+   from employee
+   where superior_emp_id is not null
+);
+
+-- Becareful not to compare a value with (null), because any attempt to
+-- equate a value to null yields unknown.
+
+select emp_id, fname, lname, title
+from employee
+where emp_id not in (1, 2, null);
+
+/* Output:
+Empty set (0.00 sec)
+*/
+
+-- This all operator shines when you are comparing >, >=, <, <=
+select account_id, cust_id, product_cd, avail_balance
+from account
+where avail_balance < all (
+   select a.avail_balance
+   from account a
+      inner join individual i on (a.cust_id = i.cust_id)
+);
+
+/* Output:
++------------+---------+------------+---------------+
+| account_id | cust_id | product_cd | avail_balance |
++------------+---------+------------+---------------+
+|         25 |      10 | BUS        |          0.00 |
++------------+---------+------------+---------------+
+1 row in set (0.02 sec)
+*/
+
+-- I imagine you can also select min value and compare it that way.
+-- This is an example of subquery used in where clause.
