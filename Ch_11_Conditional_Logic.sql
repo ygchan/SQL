@@ -255,6 +255,136 @@ where open_date between '2000-01-01' and '2005-12-31';
 1 row in set (0.00 sec)
 */
 
+-- 04. Selective Aggregation
+select concat('Alert! : Account #', a.account_id,
+  ' has incorrect balance')
+from account a
+where (a.avail_balance, a.pending_balance) <>
+  (select sum(...), sum(...) from transcation t
+   where t.account_id = a.account_id);
+
+-- Keep in mind the following
+-- debit (flip the side to negative), credit (positive)
+-- If the date in the funds_avail_date column is > current day
+-- the transcation should be added to the pending balance total
+-- but not to the available balance total.
+
+-- Check if the transcation type is DBT, flip the sign by * -1
+case 
+  when transcation.txt_typ_cd = 'DBT'
+    then transcation.amount * -1
+  else transcation.amount
+end
+
+-- Adding the logic that only transcation fund available date ready
+case
+  when transaction.txt_type_cd = 'DBT'
+    then transaction.amount * -1
+  else transaction.amount
+end
+
+-- Unavailable funds, such as checks that have not cleared, will contribute
+-- $0 to the sum. Here is the final query with two case expressions in place.
+
+select concat('ALERT! : Account #', a.account_id,
+  ' Has Incorrect Balance!')
+from account a
+where (a.avail_balance, a.pending_balance) <>
+ (select
+    sum(case
+          when t.funds_avail_date > current_timestamp()
+            then 0
+          when t.txn_type_cd = 'DBT'
+            then t.amount * -1
+          else t.amount
+        end),
+    sum(case
+          when t.txn_type_cd = 'DBT'
+            then t.amount * -1
+          else t.amount
+        end)
+    from transaction t
+    where t.account_id = a.account_id);
+
+-- Checking on existence
+select c.cust_id, c.fed_id, c.cust_type_cd,
+  case
+    when exists(select 1 from account a
+      where a.cust_id = c.cust_id
+        and a.product_cd = 'CHK') then 'Y'
+      else 'N'
+  end has_checking,
+  case
+    when exists(select 1 from account a
+      where a.cust_id = c.cust_id
+        and a.product_cd = 'SAV') then 'Y'
+    else 'N'
+  end has_saving
+from customer c;
+
+/* Output:
++---------+-------------+--------------+--------------+------------+
+| cust_id | fed_id      | cust_type_cd | has_checking | has_saving |
++---------+-------------+--------------+--------------+------------+
+|       1 | 111-11-1111 | I            | Y            | Y          |
+|       2 | 222-22-2222 | I            | Y            | Y          |
+|       3 | 333-33-3333 | I            | Y            | N          |
+|       4 | 444-44-4444 | I            | Y            | Y          |
+|       5 | 555-55-5555 | I            | Y            | N          |
+|       6 | 666-66-6666 | I            | Y            | N          |
+|       7 | 777-77-7777 | I            | N            | N          |
+|       8 | 888-88-8888 | I            | Y            | Y          |
+|       9 | 999-99-9999 | I            | Y            | N          |
+|      10 | 04-1111111  | B            | Y            | N          |
+|      11 | 04-2222222  | B            | N            | N          |
+|      12 | 04-3333333  | B            | Y            | N          |
+|      13 | 04-4444444  | B            | N            | N          |
++---------+-------------+--------------+--------------+------------+
+13 rows in set (0.01 sec)
+*/
+
+/* Output:
++--------------------+----------------------------------+------+-----+---------+----------------+
+| Field              | Type                             | Null | Key | Default | Extra          |
++--------------------+----------------------------------+------+-----+---------+----------------+
+| account_id         | int(10) unsigned                 | NO   | PRI | NULL    | auto_increment |
+| product_cd         | varchar(10)                      | NO   | MUL | NULL    |                |
+| cust_id            | int(10) unsigned                 | NO   | MUL | NULL    |                |
+| open_date          | date                             | NO   |     | NULL    |                |
+| close_date         | date                             | YES  |     | NULL    |                |
+| last_activity_date | date                             | YES  |     | NULL    |                |
+| status             | enum('ACTIVE','CLOSED','FROZEN') | YES  |     | NULL    |                |
+| open_branch_id     | smallint(5) unsigned             | YES  | MUL | NULL    |                |
+| open_emp_id        | smallint(5) unsigned             | YES  | MUL | NULL    |                |
+| avail_balance      | float(10,2)                      | YES  |     | NULL    |                |
+| pending_balance    | float(10,2)                      | YES  |     | NULL    |                |
++--------------------+----------------------------------+------+-----+---------+----------------+
+*/
+
+-- Practice once more
+-- The case statement is a correlated subquery, as it is looping each record 
+-- in customer c, it is attempting to join account by customer id.
+-- If found found, return 1 (True), else the (else) condition is match, thus 'N'
+select c.cust_id, c.fed_id, c.cust_type_cd,
+  case
+    when exists (
+        select 1 from account a
+        where a.cust_id = c.cust_id
+          and a.product_cd = 'SAV'
+    ) then 'Y'
+    else 'N'
+  end has_checking,
+  case
+    when exists (
+      select 1 from account a
+      where a.cust_id = c.cust_id
+        and a.product_cd = 'CHK'
+    ) then 'Y'
+    else 'N'
+  end has_saving
+from customer c;
+
+
 
 
 
