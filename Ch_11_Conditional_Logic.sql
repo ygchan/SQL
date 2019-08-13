@@ -518,6 +518,225 @@ update account
     where t.txn_id = 999
   );
 
+-- 07. Handling Null Values
+-- Say you want to display the word unknown instead of Null
+select emp_id, fname, lname,
+   case
+      when title is null then 'Unknown'
+      else title
+   end title
+from employee;
+
+/* Output:
++--------+----------+-----------+--------------------+
+| emp_id | fname    | lname     | title              |
++--------+----------+-----------+--------------------+
+|      1 | Michael  | Smith     | President          |
+|      2 | Susan    | Barker    | Vice President     |
+|      3 | Robert   | Tyler     | Treasurer          |
+|      4 | Susan    | Hawthorne | Operations Manager |
+|      5 | John     | Gooding   | Loan Manager       |
+|      6 | Helen    | Fleming   | Head Teller        |
+|      7 | Chris    | Tucker    | Teller             |
+|      8 | Sarah    | Parker    | Teller             |
+|      9 | Jane     | Grossman  | Teller             |
+|     10 | Paula    | Roberts   | Head Teller        |
+|     11 | Thomas   | Ziegler   | Teller             |
+|     12 | Samantha | Jameson   | Teller             |
+|     13 | John     | Blake     | Head Teller        |
+|     14 | Cindy    | Mason     | Teller             |
+|     15 | Frank    | Portman   | Teller             |
+|     16 | Theresa  | Markham   | Head Teller        |
+|     17 | Beth     | Fowler    | Teller             |
+|     18 | Rick     | Tulman    | Teller             |
++--------+----------+-----------+--------------------+
+18 rows in set (0.00 sec)
+*/
+
+-- Becareful if you are calculating a value that might be null.
+-- Best to check for null and convert to 0. Like this.
+
+select some_calculation +
+   case
+      when avail_balance is null then 0
+      else avail_balance
+   end
+   + rest of some_calculation
+from some_table.
+
+-- Test your knowledge!!
+
+-- 11.1 Try to re-write this query using as few when clauses as possible
+select e.emp_id, e.title,
+   case 
+   when (
+      select 1
+      from employee emp_title
+      where e.emp_id = emp_title.emp_id and title in ('Presdient', 
+         'Vice President', 'Treasurer', 'Load Officer')
+   ) then 'Management'
+   when (
+      select 1
+      from employee emp_title
+      where e.emp_id = emp_title.emp_id and title in ('Operation Manager', 
+         'Head Teller', 'Teller')
+   ) then 'Operations'
+   else 'Unknown'
+   end 'Group'
+from employee e
+order by title;
+
+
+/* Output:
++--------+------------+
+| emp_id | Group      |
++--------+------------+
+|      1 | Unknown    |
+|      2 | Management |
+|      3 | Management |
+|      4 | Unknown    |
+|      5 | Unknown    |
+|      6 | Operations |
+|     10 | Operations |
+|     13 | Operations |
+|     16 | Operations |
+|      7 | Operations |
+|      8 | Operations |
+|      9 | Operations |
+|     11 | Operations |
+|     12 | Operations |
+|     14 | Operations |
+|     15 | Operations |
+|     17 | Operations |
+|     18 | Operations |
++--------+------------+
+18 rows in set (0.01 sec)
+*/
+
+-- 11.2 Rewrite the following query so that the result set contains a single
+-- row with four columns (one for each branch).
+
+select open_branch_id, count(*)
+from account
+group by open_branch_id;
+
+/* Output:
++----------------+----------+
+| open_branch_id | count(*) |
++----------------+----------+
+|              1 |        8 |
+|              2 |        7 |
+|              3 |        3 |
+|              4 |        6 |
++----------------+----------+
+4 rows in set (0.01 sec)
+*/
+
+-- Original attempt:
+select distinct
+   case 
+   when open_branch_id = 1 then (
+         select count(*)
+         from account
+         group by open_branch_id
+         having open_branch_id = 1
+   ) end branch_1, 
+   case 
+      when open_branch_id = 2 then (
+         select count(*)
+         from account
+         group by open_branch_id
+         having open_branch_id = 2
+   ) end branch_2,
+   case
+   when open_branch_id = 3 then (
+         select count(*)
+         from account
+         group by open_branch_id
+         having open_branch_id = 3
+   ) end branch_3,
+   case
+   when open_branch_id = 4 then (
+         select count(*)
+         from account
+         group by open_branch_id
+         having open_branch_id = 4
+   ) end branch_4
+from account;
+
+/* Output:
++----------+----------+----------+----------+
+| branch_1 | branch_2 | branch_3 | branch_4 |
++----------+----------+----------+----------+
+|        8 |     NULL |     NULL |     NULL |
+|     NULL |        7 |     NULL |     NULL |
+|     NULL |     NULL |        3 |     NULL |
+|     NULL |     NULL |     NULL |        6 |
++----------+----------+----------+----------+
+4 rows in set (0.01 sec)
+*/
+
+-- Reading the notes:
+select distinct
+   sum(case 
+      when open_branch_id = 1 then (
+         select count(*)
+         from account
+         group by open_branch_id
+         having open_branch_id = 1
+      ) 
+      else 0 end
+   ) branch_1, 
+   sum(case 
+      when open_branch_id = 2 then (
+         select count(*)
+         from account
+         group by open_branch_id
+         having open_branch_id = 2
+      ) 
+      else 0 end
+   ) branch_2,
+   sum(case
+      when open_branch_id = 3 then (
+         select count(*)
+         from account
+         group by open_branch_id
+         having open_branch_id = 3
+      )  
+      else 0 end
+   ) branch_3,
+   sum(case
+      when open_branch_id = 4 then (
+         select count(*)
+         from account
+         group by open_branch_id
+         having open_branch_id = 4
+      ) 
+      else 0 end
+   ) branch_4
+from account;
+
+/* Output:
++----------+----------+----------+----------+
+| branch_1 | branch_2 | branch_3 | branch_4 |
++----------+----------+----------+----------+
+|       64 |       49 |        9 |       36 |
++----------+----------+----------+----------+
+1 row in set (0.01 sec)
+*/
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
