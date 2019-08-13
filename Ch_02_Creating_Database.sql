@@ -1,4 +1,5 @@
 -- How to sign-on with user account and select database
+-- export PATH=$PATH:/usr/local/mysql/bin
 -- mysql -u Study -p bank
 
 -- 01: How to get the current time
