@@ -41,3 +41,46 @@
 
 --    Interestingly, MySQL has both approaches available for users depending
 --    on the storage engine choice.
+
+-- Lock Granularities
+-- Table Lock - Entire Table
+-- Page Lock  - Each page is a segment of memory in the range of 2KB-16KB
+-- Row Lock   - One Row
+
+-- 03: What is a transactions?
+-- If the queries never encounter fatal errors and it always allow many 
+-- concurrent user access, and server never shut down. Then no need for this.
+-- But because we are in a real world, we need a way to ensure if the execution
+-- failed, we can "rollback" ALL changes made.
+
+-- The book gives an interesting example, if you try to transfer $500 from 
+-- checking to saving, and it crashed AFTER the withdrawal for any kind of 
+-- reason - server shut down, query crashed, write lock not available. You will
+-- be understandly very upset.
+
+-- Therefore, after the server confirmed the transcation is sucessful, it 
+-- will issue a commit (git??), and if it failed (not complete entire run)
+-- it will issue a rollback.
+
+-- Example:
+start transcation;
+
+/* With draw $500 */
+update account set avail_balance = avail_balance - 500
+where account_id = 1234
+  and avail_balance > 500;
+
+if /* Exactly one row was updated by previous query */ Then
+   /* deposit money into second account */
+   update account set avail_balance = avail_balance + 500
+   where account_id = 1234;
+
+   if /* Exactly one row was updated by previous query */ Then
+      /* everything worked, make the changes permanent */
+      commit;
+   else
+      /* Something went wrong, undo all changes in this transcation */
+      rollback;
+end if;
+
+
