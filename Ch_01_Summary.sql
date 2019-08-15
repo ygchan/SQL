@@ -55,3 +55,27 @@
 --    single column grouping
 --    multiple columns grouping
 --    rollups          ex: group by a, b with rollup
+
+-- Chapter 9: Subqueries
+--   Three different types of subquery returned
+--       1. Single row w/ single column
+--       2. Multiple row w/ single column
+--       3. Multiple row w/ multiple column
+--   Noncorrelated subquery
+--   Correlated subquery
+--   The in/ not in operator
+--   The all operator
+--   Multicolumn subquery
+--   The exists operator
+--   Data manipulation using correlated Subqueries
+--   Subqueries as data source
+--   Data fabrication
+--   Subqueries as filer conditions
+--   Subqueries as expression generators
+
+-- Chapter 10: Joins Revisited
+--   Inner Joins
+--   Left/Right Outer Joins
+--   Self Outer Joins
+--   Cross Joins
+--   Cross Joins example to create dates
