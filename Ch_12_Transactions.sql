@@ -81,6 +81,64 @@ if /* Exactly one row was updated by previous query */ Then
    else
       /* Something went wrong, undo all changes in this transcation */
       rollback;
+else
+   rollback;
 end if;
 
+-- In MS SQL Server (I imagine what the company use?) - They are automatically
+-- commited independently of one another.
 
+-- In MS SQL. Once you press the Enter key, the changes made will be permanent.
+-- Unless your DBA rollback from a backup.
+
+-- Start a transcation
+set implicit_transactions on
+
+-- MySQL disable auto-commit mode via the following
+set autocommit = 0
+
+-- Ending a transcation
+commit
+rollback
+
+-- Test your knowledge!!
+
+-- 12.1 Generate a transcation to transfer $50 from Frank Tucker's money 
+-- market account to his checking account. You will need to insert two rows
+-- into transaction table and update two rows in the account table
+
+start transaction;
+
+-- Using coorelated subquery to lookup the account ids
+select i.cust_id,
+   (select a.account_id from account a
+    where a.cust_id = i.cust_id
+      and a.product_cd = 'MM') mm_id,
+   (select a.account_id from account a
+    where a.cust_id = i.cust_id
+      and a.product_cd = 'chk') chk_id
+   -- place these value into variables
+   into @cst_id, @@mm_id, @chk_id
+   from individual i
+   where i.fname = 'Frank' and i.lname = 'Tucker';
+
+-- Using the @ symbol to use them somewhere else
+insert into transcation (txn_id, txn_date, account_id,
+   txn_type_cd, amount)
+values (null, now(), @mm_id, 'CDT', 50);
+
+insert into transcation(txn_id, txn_date, account_id,
+   txn_type_cd, amount)
+values (null, now(), @chk_id, 'DBT', 50);
+
+update account
+set last_activity_date = now(),
+   avail_balance = avail_balance - 50
+where account_id = @mm_id;
+
+update account
+set last_activity_date = now(),
+   avail_balance = avail_balance + 50
+where account_id = @chk_id;  
+
+commit;
