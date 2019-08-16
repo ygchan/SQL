@@ -85,6 +85,12 @@ Records: 0  Duplicates: 0  Warnings: 0
 alter table employee
 add index emp_names_idx (lname, fname);
 
+-- 06. What are the types of indexes in SQL?
+-- B-tree, Bitmap and Text indexes.
 
+-- B-tree indexes are organized as trees, with one or more level of branch
+-- nodes leading to a single level of leaf nodes. Branch nodes are used
+-- for navigating the tree, while leaf nodes hold the actual values and
+-- location information.
 
 
