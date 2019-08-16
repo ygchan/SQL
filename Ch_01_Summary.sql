@@ -79,3 +79,19 @@
 --   Self Outer Joins
 --   Cross Joins
 --   Cross Joins example to create dates
+
+-- Chapter 11: Conditional Logics
+--   Case expression
+--   Searched case expression
+--   Case expression w/ subquery
+--   Searched case expression w/ sbuqery
+--   Result set transformation
+--   Sum case
+--   Selective Aggregation
+--   Checking on existence
+--   Calculation with case statement
+--   Rewrite queries with less Join
+
+-- Chapter 12: Transactions
+--   Commit and Rollback
+--   Theory behind read/write lock and versioning
