@@ -93,4 +93,36 @@ add index emp_names_idx (lname, fname);
 -- for navigating the tree, while leaf nodes hold the actual values and
 -- location information.
 
+-- Bitmap indexes
+-- B-tree indexes are great a handling columns that has many different values
+-- such as a customer's first/last name. But they can become unwiedly when
+-- built on a column that allow for a small number of values.
 
+-- Bitmap indexes generate a bitmap for each value stored in the column
+
+-- value/row 1 2 3 4 5
+-- BUS       0 0 1 0 1
+-- CD        1 0 0 0 0
+-- CHK       0 1 0 1 0
+
+-- Bitmap indexes are great for low-cardinality data. But if the number of
+-- values stored in the column climbs too high in relations to the number
+-- of rows. Then it will struggle to perform.
+
+-- Question: is it a good idea to build bitmap index of your primary key?
+-- Think about it like this.
+-- value/row  1 2 3 4 5 6 7 8 .. 300T 
+-- 001        0 1 0 0 0 0 0 0 
+-- 002        1 0 0 0 0 0 0 0
+-- 003        0 0 0 1 0 0 0 0
+-- 004        ....
+
+-- The answer is no, because the number of distinct value is n, and the number
+-- of row is also n. This will be an n^2 matrix, very poor performance.
+
+-- Oracle user would type this to create a bitmap index
+create bitmap index acc_prod_idx on account(product_cd);
+
+-- Bitmap indexes are commonly used in data warehouse environment, where
+-- large amount of data are generally indexed on columns containing relatively
+-- few values (think about sales quarter, geographic regions, products etc)
