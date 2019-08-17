@@ -245,3 +245,80 @@ possible_keys: acc_bal_idx
 -- constraint.
 
 -- Check constraints - Restrict the allowable values for a column. 
+
+-- 11. What is an orphaned rows?
+-- It is a record without a corresponding record in another table.
+-- For example, an customer ID is changed in the customer table,
+-- but the account ID's customer table was never updated.
+-- The account table's row is now consider orphaned row.
+
+-- Note, if you want to use the foreign key constraints with MySQL
+-- server, then you must use the InnoDB storage engine.
+
+-- 12. How to create a Constraint?
+create table product
+(
+   product_cd varchar(10) not null,
+   name varchar(50) not null,
+   product_type_cd varchar(10) not null,
+   date_offered date,
+   date_retired date,
+      constraint fk_product_type_cd foreign key (product_type_cd)
+         references product_type (product_type_cd),
+      constraint pk_product primary key (product_cd)
+);
+
+-- You can also add/remove them after via the alter table statement
+alter table product
+add constraint pk_product primary key (product_cd);
+
+alter table product
+add constraint fk_product foreign key (product_type_cd)
+   references product_type (product_type_cd);
+
+-- Author pointed out that it is unusual to drop a primary key constraint
+-- but foreign on the other hand, it is common to see it dropped during
+-- maintenance and then reestablished.
+
+-- Look at this table:
+/*
+   Constraint Type    | MySQL 
+   Pk constraints     | Generate unique index
+   Fk constraints     | Generate index
+   Unique constraints | Generate unique index
+*/
+
+-- 13. Cascading Constraints
+-- The foreign key contraint doesn't allow you to change the child row,
+-- if there is no corresponding value in the parent.
+
+-- At the same time, the server's default behavior also does not allow
+-- you to change the parent table by themselves. You may instruct the server
+-- to propagate the change to all child rows for you.
+
+-- 14. What is an cascading update?
+-- cascading update is a variation of the foreign key contraints that
+-- can be installed by removing the existing foreign key and adding a new one
+-- that includes on the update cascade clause.
+
+alter table product
+drop foreign key fk_product_type_cd;
+
+alter table product
+add constraint fk_product_type_cd foreign key (product_type_cd)
+   references product_type (product_type_cd)
+   on update cascade;
+
+-- You may not update the product_type table (parent)
+update product_type
+   set product_type_cd = 'XYZ'
+   where product_type_cd = 'Loan';
+
+/* Output:
+mysql> update product_type
+    ->    set product_type_cd = 'XYZ'
+    ->    where product_type_cd = 'Loan';
+Query OK, 1 row affected (0.01 sec)
+Rows matched: 1  Changed: 1  Warnings: 0
+*/
+
