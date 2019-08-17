@@ -213,3 +213,35 @@ possible_keys: acc_bal_idx
 
 -- The server can use an index as though it were a table as long as the index
 -- contains all the columns needed by the query.
+
+-- 09. Downside of Indexes
+-- Everytime a row is added or removed from a table, all indexes on that table
+-- must be modified. The more index you have, more work server will need to do
+-- to keep everything up to date.
+
+-- Indexes also require disk space. A good practice is to add the index, run
+-- a routine and then drop it. Or another way (for data team), drop the index
+-- before loading data, and add them back afterward.
+
+-- I am very interested what is the current method used?
+
+-- Consider building additional indexes on a subset of primary key columns
+-- or on all the primary key columns but in a different order than primary
+-- key data.
+
+-- 10. What are the 4 different type of constraints?
+-- They are: Primary key constraints, foreign key constraints,
+-- unique constraints and check constraints.
+
+-- Pimary key constraints - identify the column that guarantee uniqueness
+-- with in a table.
+
+-- Foreign key constraints - restrict one / more columns to cotain only values
+-- found in another table's pimary key columns, and may also restrict the 
+-- allowable values in other tables if update cascade or delete cascade rules.
+
+-- Unique constraints - restrict one / more columns to contain unique value
+-- within a table (primary key) constraints are a special type of unqiue 
+-- constraint.
+
+-- Check constraints - Restrict the allowable values for a column. 
