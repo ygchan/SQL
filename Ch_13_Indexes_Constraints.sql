@@ -322,3 +322,54 @@ Query OK, 1 row affected (0.01 sec)
 Rows matched: 1  Changed: 1  Warnings: 0
 */
 
+-- Test your knowledge!!
+-- 13.1 Modify the account table so that customers may not have more than 
+-- one account for each product
+
+/* Output:
+mysql> desc account;
++--------------------+----------------------------------+------+-----+---------+----------------+
+| Field              | Type                             | Null | Key | Default | Extra          |
++--------------------+----------------------------------+------+-----+---------+----------------+
+| account_id         | int(10) unsigned                 | NO   | PRI | NULL    | auto_increment |
+| product_cd         | varchar(10)                      | NO   | MUL | NULL    |                |
+| cust_id            | int(10) unsigned                 | NO   | MUL | NULL    |                |
+| open_date          | date                             | NO   |     | NULL    |                |
+| close_date         | date                             | YES  |     | NULL    |                |
+| last_activity_date | date                             | YES  |     | NULL    |                |
+| status             | enum('ACTIVE','CLOSED','FROZEN') | YES  |     | NULL    |                |
+| open_branch_id     | smallint(5) unsigned             | YES  | MUL | NULL    |                |
+| open_emp_id        | smallint(5) unsigned             | YES  | MUL | NULL    |                |
+| avail_balance      | float(10,2)                      | YES  |     | NULL    |                |
+| pending_balance    | float(10,2)                      | YES  |     | NULL    |                |
++--------------------+----------------------------------+------+-----+---------+----------------+
+11 rows in set (0.02 sec)
+*/
+
+-- Add an unique index
+alter table account
+add constraint cust_prod_idx unique (cust_id, product_cd);
+
+-- 13.2 Generate a multicolumn index on the transcation table that could be
+-- used by both the following queries:
+
+select txn_date, account_id, txn_type_cd, amount
+from transcation
+where txn_date > cast('2008-12-31 23:59:59' as datetime);
+
+select txn_date, account_id, txn_type_cd, amount
+from transcation
+where tnx_date > cast('2008-12-31 23:59:59' as datetime)
+   and amount < 100;
+
+-- This index might have been too complicated.
+alter table transcation
+add index tnx_date_acct_type_amt_idx (txn_date, account_id, txn_type_cd, amount);
+
+-- This is better? But I don't know if it is enough.
+alter table transcation
+add index tnx_date_amt_dx (txn_date, amount);
+
+-- Correct answer:
+create index txn_idx01;
+on transcation (txn_date, amount);
