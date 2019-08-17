@@ -93,6 +93,7 @@ add index emp_names_idx (lname, fname);
 -- for navigating the tree, while leaf nodes hold the actual values and
 -- location information.
 
+-- 07. What about Bitmap? Tell me about them.
 -- Bitmap indexes
 -- B-tree indexes are great a handling columns that has many different values
 -- such as a customer's first/last name. But they can become unwiedly when
@@ -126,3 +127,89 @@ create bitmap index acc_prod_idx on account(product_cd);
 -- Bitmap indexes are commonly used in data warehouse environment, where
 -- large amount of data are generally indexed on columns containing relatively
 -- few values (think about sales quarter, geographic regions, products etc)
+
+-- How is index actually used?
+-- The sever quickly locates the row using the index, and then visit each row
+-- and retreive the columns requested.
+
+-- If the index contains everything needed to satisfy the query, then the query
+-- doesn't need to visits the associated table.
+
+select cust_id, sum(avail_balance) tot_bal
+from account
+where cust_id in (1, 5, 9, 11)
+group by cust_id;
+
+/*
++---------+----------+
+| cust_id | tot_bal  |
++---------+----------+
+|       1 |  4557.75 |
+|       5 |  2237.97 |
+|       9 | 10971.22 |
+|      11 |  9345.55 |
++---------+----------+
+4 rows in set (0.01 sec)
+*/
+
+-- 08. How to show the execution plan?
+-- To see how MySQL query optimizer decides to execute the query,
+-- I use the explain statement to ask the server to show the execution plan 
+-- for the query rather than excuting the query.
+
+explain select cust_id, sum(avail_balance) tot_bal
+from account
+where cust_id in (1, 5, 9, 11)
+group by cust_id;
+
+/*
++----+-------------+---------+-------+---------------+--------------+---------+------+------+-------------+
+| id | select_type | table   | type  | possible_keys | key          | key_len | ref  | rows | Extra       |
++----+-------------+---------+-------+---------------+--------------+---------+------+------+-------------+
+|  1 | SIMPLE      | account | index | fk_a_cust_id  | fk_a_cust_id | 4       | NULL |   24 | Using where |
++----+-------------+---------+-------+---------------+--------------+---------+------+------+-------------+
+1 row in set (0.00 sec)
+*/
+
+-- Looking at this execution plan, the fk_a_cust_id index is used to find rows
+-- the account table that satisfy the where clause.
+
+-- After reading the index, the server is expects to read all 24 rows of the 
+-- account table, because it doesn't know that there might be other customer 
+-- besides 1, 5, 9, 11.
+
+-- But I think there is a better way, how about we create a new index on both
+-- the cust_id and avail_balance column?
+
+alter table account
+add index acc_bal_idx (cust_id, avail_balance);
+
+-- Then run our query again
+
+explain select cust_id, sum(avail_balance) tot_bal
+from account
+where cust_id in (1, 5, 9, 11)
+group by cust_id \G
+
+/*
+*************************** 1. row ***************************
+           id: 1
+  select_type: SIMPLE
+        table: account
+         type: range
+possible_keys: acc_bal_idx
+          key: acc_bal_idx
+      key_len: 4
+          ref: NULL
+         rows: 8
+        Extra: Using where; Using index
+1 row in set (0.00 sec)
+*/
+
+-- Three things to note:
+-- One, the optimizer is using acc_bal_idx instead of fk_a_cust_id
+-- Two, the optimizer anticipates needing only 8 rows instead of 24 rows
+-- Three, the account table is not needed. (designated by using index in extra)
+
+-- The server can use an index as though it were a table as long as the index
+-- contains all the columns needed by the query.
