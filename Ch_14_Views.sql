@@ -4,9 +4,9 @@
 -- Views are useful because it keeps details and private information hidden.
 -- This chapter will learn about
 
---		What views are?
---		How views are created?
---		When and how someone might use the view?
+--    What views are?
+--    How views are created?
+--    When and how someone might use the view?
 
 -- 01. What is view?
 -- View is simply a mechanism for querying data. Unlike tables, views do not
@@ -18,22 +18,22 @@
 
 create view vw_customer
 (
-	cust_id,
-	fed_id,
-	cust_type_cd,
-	address,
-	city,
-	state,
-	zipcode
+   cust_id,
+   fed_id,
+   cust_type_cd,
+   address,
+   city,
+   state,
+   zipcode
 )
 as 
 select cust_id,
-	concat('ends in ', substr(fed_id, 8, 4)) fed_id,
-	cust_type_cd,
-	address,
-	city,
-	state,
-	postal_code
+   concat('ends in ', substr(fed_id, 8, 4)) fed_id,
+   cust_type_cd,
+   address,
+   city,
+   state,
+   postal_code
 from customer;
 
 /* Output:
@@ -99,3 +99,138 @@ order by 1;
 -- information. Then you can use view to mask these column/rows.
 -- Columns (exclude from select clause or substring the column to mask)
 -- Rows    (exclude using where column = (condition))
+
+-- Example of limiting what the user can access
+create view business_customer_vw
+(
+   cust_id,
+   fed_id,
+   cust_type_cd,
+   address,
+   city,
+   state,
+   zipcode
+)
+as 
+select cust_id,
+   concat('ends in ', substr(fed_id, 8, 4)) fed_id,
+   cust_type_cd,
+   address,
+   city,
+   state,
+   postal_code
+from customer
+where cust_type_cd = 'B';
+
+/*
+mysql> select * from business_customer_vw;
++---------+-------------+--------------+-----------------------+------------+-------+---------+
+| cust_id | fed_id      | cust_type_cd | address               | city       | state | zipcode |
++---------+-------------+--------------+-----------------------+------------+-------+---------+
+|      10 | ends in 111 | B            | 7 Industrial Way      | Salem      | NH    | 03079   |
+|      11 | ends in 222 | B            | 287A Corporate Ave    | Wilmington | MA    | 01887   |
+|      12 | ends in 333 | B            | 789 Main St           | Salem      | NH    | 03079   |
+|      13 | ends in 444 | B            | 4772 Presidential Way | Quincy     | MA    | 02169   |
++---------+-------------+--------------+-----------------------+------------+-------+---------+
+4 rows in set (0.00 sec)
+*/
+
+-- 04.2: Data Aggregation
+create view customer_totals_vw
+(
+   cust_id,
+   cust_type_cd,
+   cust_name,
+   num_accounts,
+   tot_deposits
+) 
+as 
+select cst.cust_id, cst.cust_type_cd,
+   case
+      when cst.cust_type_cd = 'B' Then
+      (select bus.name from business bus where bus.cust_id = cst.cust_id)
+      else 
+      (select concat(ind.fname, ' ', ind.lname)
+       from individual ind
+       where ind.cust_id = cst.cust_id)
+   end cust_name,
+   sum(case when act.status = 'ACTIVE' then 1 else 0 end) tot_active_accounts,
+   sum(case when act.status = 'ACTIVE' then act.avail_balance else 0 end) 
+      tot_balance
+from customer cst 
+   inner join account act
+group by cst.cust_id, cst.cust_type_cd;
+
+
+-- This is a quick and easy way to "download the entire view"
+-- But in production I think it might take a long time.
+-- For example, in the XYZ table, it is over 14 GB to download.
+-- Maybe make a view that is dropping more columns, or limiting a range.
+create table customer_totals
+as 
+select * from customer_totals_vw;
+
+-- I think a view is as good as a pre-stored query.
+
+/* Output:
++---------+--------------+------------------------+--------------+--------------+
+| cust_id | cust_type_cd | cust_name              | num_accounts | tot_deposits |
++---------+--------------+------------------------+--------------+--------------+
+|       1 | I            | James Hadley           |           24 |    170754.46 |
+|       2 | I            | Susan Tingley          |           24 |    170754.46 |
+|       3 | I            | Frank Tucker           |           24 |    170754.46 |
+|       4 | I            | John Hayward           |           24 |    170754.46 |
+|       5 | I            | Charles Frasier        |           24 |    170754.46 |
+|       6 | I            | John Spencer           |           24 |    170754.46 |
+|       7 | I            | Margaret Young         |           24 |    170754.46 |
+|       8 | I            | Louis Blake            |           24 |    170754.46 |
+|       9 | I            | Richard Farley         |           24 |    170754.46 |
+|      10 | B            | Chilton Engineering    |           24 |    170754.46 |
+|      11 | B            | Northeast Cooling Inc. |           24 |    170754.46 |
+|      12 | B            | Superior Auto Body     |           24 |    170754.46 |
+|      13 | B            | AAA Insurance Inc.     |           24 |    170754.46 |
++---------+--------------+------------------------+--------------+--------------+
+13 rows in set (0.01 sec)
+*/
+
+-- New: Create or replace syntax
+create or replace view customer_totals_vw
+(
+   cust_id,
+   cust_type_cd,
+   cust_name,
+   num_accounts,
+   tot_deposits
+)
+as
+select cust_id, cust_type_cd, cust_name, num_accounts, tot_deposits
+from customer_totals;
+
+-- If you provide the end user a view, then you can have greater flexibility
+-- on how these data are aggregated, live (query) or pre-aggregated.
+
+-- 04.3: Hiding complexity
+-- If the report created each month is really complicated, it is easier to hand
+-- the view to the end users, than to provide a complex way to join tables.
+
+-- 04.4: Joining partitioned data
+-- This is the classical example (3 years data) vs. (all historical data)
+
+create view transcation_vw
+(
+   txn_date,
+   account_id,
+   txn_type_cd,
+   amount,
+   teller_emp_id,
+   execution_branch_id,
+   funds_avail_date
+)
+as
+select txn_Date, account_id, txn_type_cd, amount, teller_emp_id,
+   execution_branch_id, funds_avail_date
+from transcation_historic
+union all
+select txn_Date, account_id, txn_type_cd, amount, teller_emp_id,
+   execution_branch_id, funds_avail_date
+from transcation_current;
