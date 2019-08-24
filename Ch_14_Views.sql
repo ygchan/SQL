@@ -234,3 +234,123 @@ union all
 select txn_Date, account_id, txn_type_cd, amount, teller_emp_id,
    execution_branch_id, funds_avail_date
 from transcation_current;
+
+-- 05. Updatable Views
+-- MySQL, Oracle Database and SQL Server all allow you to modify data 
+-- through a view, as long as you abide by certain restrictions.
+
+-- In MySQL, the conditions are:
+-- 1. No aggregate functions are used (max, min, avg, etc)
+-- 2. The view does not employ group by or having clauses
+-- 3. No subquery exist in the select or from clause, or any subqueries
+--    in the where clause do not refer to tables in the from clause.
+-- 4. The view does not utilize union, union all, or distinct.
+-- 5. The from clause includes at least one table/updatable view.
+-- 6. The from clause uses only inner join, if there is more than 1 table/view.
+
+-- 06. Updating simple views.
+-- George, do you still remember the very simple view, it had been from a few
+-- days now.
+
+-- Customer view hide the SSN number from internal team, 
+-- only allow them to see the last 4 digits.
+create view customer_vw
+(
+   cust_id,
+   fed_id,
+   cust_type_cd,
+   address,
+   city,
+   state,
+   zipcode
+)
+as 
+select cust_id,
+   concat('ends in ', substr(fed_id, 8, 4)) fed_id,
+   cust_type_cd,
+   address,
+   city,
+   state,
+   postal_code
+from customer;
+
+/* Output:
++---------+--------------+--------------+-----------------------+------------+-------+---------+
+| cust_id | fed_id       | cust_type_cd | address               | city       | state | zipcode |
++---------+--------------+--------------+-----------------------+------------+-------+---------+
+|       1 | ends in 1111 | I            | 47 Mockingbird Ln     | Lynnfield  | MA    | 01940   |
+|       2 | ends in 2222 | I            | 372 Clearwater Blvd   | Woburn     | MA    | 01801   |
+|       3 | ends in 3333 | I            | 18 Jessup Rd          | Quincy     | MA    | 02169   |
+|       4 | ends in 4444 | I            | 12 Buchanan Ln        | Waltham    | MA    | 02451   |
+|       5 | ends in 5555 | I            | 2341 Main St          | Salem      | NH    | 03079   |
+|       6 | ends in 6666 | I            | 12 Blaylock Ln        | Waltham    | MA    | 02451   |
+|       7 | ends in 7777 | I            | 29 Admiral Ln         | Wilmington | MA    | 01887   |
+|       8 | ends in 8888 | I            | 472 Freedom Rd        | Salem      | NH    | 03079   |
+|       9 | ends in 9999 | I            | 29 Maple St           | Newton     | MA    | 02458   |
+|      10 | ends in 111  | B            | 7 Industrial Way      | Salem      | NH    | 03079   |
+|      11 | ends in 222  | B            | 287A Corporate Ave    | Wilmington | MA    | 01887   |
+|      12 | ends in 333  | B            | 789 Main St           | Salem      | NH    | 03079   |
+|      13 | ends in 444  | B            | 4772 Presidential Way | Quincy     | MA    | 02169   |
++---------+--------------+--------------+-----------------------+------------+-------+---------+
+13 rows in set (0.02 sec)
+*/
+
+-- Analysis: the customer_vw view queries a single table, and only one
+-- of the 7 columns is derived via an expression. 
+
+-- Therefore, you can use it to modify data in the customer table.
+update customer_vw
+   set city = 'Woooburn'
+   where city = 'Woburn';
+
+/* Output:
+mysql> select * from customer_vw where cust_id = 2;
++---------+--------------+--------------+---------------------+----------+-------+---------+
+| cust_id | fed_id       | cust_type_cd | address             | city     | state | zipcode |
++---------+--------------+--------------+---------------------+----------+-------+---------+
+|       2 | ends in 2222 | I            | 372 Clearwater Blvd | Woooburn | MA    | 01801   |
++---------+--------------+--------------+---------------------+----------+-------+---------+
+1 row in set (0.01 sec)
+*/
+
+-- We can also check the underlying cusomter table just to be sure
+select distinct city from customer;
+
+/* Output:
++------------+
+| city       |
++------------+
+| Lynnfield  |
+| Woooburn   |
+| Quincy     |
+| Waltham    |
+| Salem      |
+| Wilmington |
+| Newton     |
++------------+
+7 rows in set (0.01 sec)
+*/
+
+-- But you are not allowed to change fed_id column, because it is an 
+-- derived column.
+update customer_vw
+   set city = 'Woburn', fed_id = '999999999'
+   where city = 'Woooburn';
+
+/* Output:
+mysql> update customer_vw
+    ->    set city = 'Woburn', fed_id = '999999999'
+    ->    where city = 'Woooburn';
+ERROR 1348 (HY000): Column 'fed_id' is not updatable
+*/
+
+-- You may not insert rows in view with derived columns too, sorry.
+insert into customer_vw(cust_id, cust_type_cd, city)
+   values (999, 'I', 'Worcester');
+
+/* Output:
+mysql> insert into customer_vw(cust_id, cust_type_cd, city)
+    ->    values (999, 'I', 'Worcester');
+ERROR 1471 (HY000): The target table customer_vw of the INSERT is not insertable-into
+*/
+
