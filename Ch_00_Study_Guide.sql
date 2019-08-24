@@ -26,3 +26,13 @@ drop index my_index_name (column_name);
 -- (I): How to create an multi-column index? Write the code
 alter table my_table_name
 add index my_index_name (column_one, column_two);
+
+-- #04. (I): How to drop an index? Write the code.
+alter table my_table_name
+drop index my_index_name (column_name);
+
+-- #05. (I): How to create an multi-column index? Write the code
+alter table my_table_name
+add index my_index_name (column_one, column_two);
+
+-- #06. 
