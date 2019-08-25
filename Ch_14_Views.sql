@@ -354,3 +354,162 @@ mysql> insert into customer_vw(cust_id, cust_type_cd, city)
 ERROR 1471 (HY000): The target table customer_vw of the INSERT is not insertable-into
 */
 
+-- A more complicated view example
+create view business_customer_vw
+(
+   cust_id,
+   address,
+   city,
+   state,
+   postal_code,
+   business_name,
+   state_id,
+   incorp_date
+)
+as 
+select cst.cust_id,
+   cst.fed_id,
+   cst.city,
+   cst.state,
+   cst.postal_code,
+   bsn.name,
+   bsn.state_id,
+   bsn.incorp_date
+from customer cst 
+   inner join business bsn on cst.cust_id = bsn.cust_id
+where cust_type_cd = 'B';
+
+-- This sort of update across multiple tables are ok
+update business_customer_vw
+   set postal_code = '9999'
+   where cust_id = 10;
+
+update business_customer_vw
+   set incorp_date = '2008-11-17'
+   where cust_id = 10;
+
+-- But you are not allowed to update two table at once
+update business_customer_vw
+   set postal_code = '88888', 
+      incorp_date = '2008-10-31'
+   where cust_id = 10;
+
+-- PL/SQL or Transact-SQL has additional features
+-- known as stead of triggers, allow you to intercept insert, update
+-- and delete statement against a view. For production (nontrivial application)
+-- This will be really helpful.
+
+-- Test your knownledge!!
+-- 14.1 Create a view that queries the employee table and generates the
+-- following output when queried with no where clause.
+create view employee_org_chart_vw as 
+   select concat(s.fname, ' ', s.lname) as supervisor_name,
+      concat(e.fname, ' ', e.lname) as employee_name
+   from employee e
+      left join employee s on (e.superior_emp_id = s.emp_id)
+   order by e.emp_id;
+
+/* Output:
+mysql> select * from employee_org_chart_vw;
++-----------------+------------------+
+| supervisor_name | employee_name    |
++-----------------+------------------+
+| NULL            | Michael Smith    |
+| Michael Smith   | Susan Barker     |
+| Michael Smith   | Robert Tyler     |
+| Robert Tyler    | Susan Hawthorne  |
+| Susan Hawthorne | John Gooding     |
+| Susan Hawthorne | Helen Fleming    |
+| Helen Fleming   | Chris Tucker     |
+| Helen Fleming   | Sarah Parker     |
+| Helen Fleming   | Jane Grossman    |
+| Susan Hawthorne | Paula Roberts    |
+| Paula Roberts   | Thomas Ziegler   |
+| Paula Roberts   | Samantha Jameson |
+| Susan Hawthorne | John Blake       |
+| John Blake      | Cindy Mason      |
+| John Blake      | Frank Portman    |
+| Susan Hawthorne | Theresa Markham  |
+| Theresa Markham | Beth Fowler      |
+| Theresa Markham | Rick Tulman      |
++-----------------+------------------+
+18 rows in set (0.01 sec)
+*/
+
+-- 14.2 The bank president would like to have a report showing the name 
+-- and the city of each branch, along with the total balances of all accounts
+-- opened at the branch. Create a view to generate the data.
+
+-- To solve this problem, I issued the following commands
+-- show tables;            << To see what are the resources
+-- select * from branch;   << To see what data are there
+-- select * from account;  << To see what data are there
+
+create view branch_avil_balance_vw as 
+   select b.name, b.city,
+      a.sum_avil_balance
+   from branch b
+      inner join (
+         select distinct open_branch_id, 
+            sum(avail_balance) as sum_avil_balance
+         from account
+         group by open_branch_id
+      ) a on (b.branch_id = a.open_branch_id);
+
+-- This does not work.
+-- View's select can't contain a subquery...
+/* Output:
+ERROR 1349 (HY000): View's SELECT contains a subquery in the FROM clause 
+*/
+
+-- This solution is much simplier and easy to understand.
+create view branch_avil_balance_vw as 
+   select b.name, b.city, sum(avail_balance)
+   from branch b
+      inner join account a on (b.branch_id = a.open_branch_id)
+   group by b.name, b.city;
+
+/* Output:
+mysql> select * from branch_avil_balance_vw;
++---------------+---------+--------------------+
+| name          | city    | sum(avail_balance) |
++---------------+---------+--------------------+
+| Headquarters  | Waltham |           27882.57 |
+| Quincy Branch | Quincy  |           53270.25 |
+| So. NH Branch | Salem   |           68240.32 |
+| Woburn Branch | Woburn  |           21361.32 |
++---------------+---------+--------------------+
+4 rows in set (0.00 sec)
+*/
+
+-- 14.1 Answer. While George's solution works alright, the syntax and format
+-- doesn't quite match what the model answers.
+create view supervisor_vw
+(
+   supervisor_name,
+   employee_name
+) as
+select concat(spr.fname, ' ', spr.lname),
+   concat(emp.fname, ' ', emp.lname)
+from employee emp
+   left join employee spr on (emp.superior_emp_id = spr.emp_id);
+
+-- This answer has the additional clarity that mine doesn't .
+-- This can easily see what the the new columns are
+-- without confusing with the logics.
+
+select * from supervisor_vw;
+
+-- 14.2 Answer.
+create view branch_summary_vw
+(
+   branch_name,
+   branch_city,
+   total_balance
+)
+as 
+select b.name, b.city, 
+   sum(a.avail_balance)
+from branch b inner join account a
+   on b.branch_id = a.open_branch_id
+group by b.name, b.city;
