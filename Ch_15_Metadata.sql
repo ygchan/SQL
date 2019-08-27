@@ -151,11 +151,64 @@ order by 1, 3;
 8 rows in set (0.00 sec)
 */
 
+-- The most interesting thing to note: acc_bal_idx has 2 columns, one is 
+-- cust_id and the other one is avail_balance. 
 
+-- The information_schema.statistics is particularly useful.
 
+-- If you want to analyze all the different types of constraints (foreign key,
+-- primary key, unique key). You can use information_schema.table_constraints
+-- view.
 
+select constraint_name, table_name, constraint_type
+from information_schema.table_constraints
+where table_schema = 'bank'
+order by 3, 1;
 
+/* Output:
++---------------------+------------------+-----------------+
+| constraint_name     | table_name       | constraint_type |
++---------------------+------------------+-----------------+
+| fk_a_branch_id      | account          | FOREIGN KEY     |
+| fk_a_cust_id        | account          | FOREIGN KEY     |
+| fk_a_emp_id         | account          | FOREIGN KEY     |
+| fk_b_cust_id        | business         | FOREIGN KEY     |
+| fk_dept_id          | employee         | FOREIGN KEY     |
+| fk_exec_branch_id   | transaction      | FOREIGN KEY     |
+| fk_e_branch_id      | employee         | FOREIGN KEY     |
+| fk_e_emp_id         | employee         | FOREIGN KEY     |
+| fk_i_cust_id        | individual       | FOREIGN KEY     |
+| fk_o_cust_id        | officer          | FOREIGN KEY     |
+| fk_product_cd       | account          | FOREIGN KEY     |
+| fk_product_type_cd  | product          | FOREIGN KEY     |
+| fk_teller_emp_id    | transaction      | FOREIGN KEY     |
+| fk_t_account_id     | transaction      | FOREIGN KEY     |
+| PRIMARY             | individual       | PRIMARY KEY     |
+| PRIMARY             | account          | PRIMARY KEY     |
+| PRIMARY             | department       | PRIMARY KEY     |
+| PRIMARY             | product          | PRIMARY KEY     |
+| PRIMARY             | customer         | PRIMARY KEY     |
+| PRIMARY             | transaction      | PRIMARY KEY     |
+| PRIMARY             | officer          | PRIMARY KEY     |
+| PRIMARY             | some_transcation | PRIMARY KEY     |
+| PRIMARY             | business         | PRIMARY KEY     |
+| PRIMARY             | employee         | PRIMARY KEY     |
+| PRIMARY             | product_type     | PRIMARY KEY     |
+| PRIMARY             | branch           | PRIMARY KEY     |
+| cust_prod_idx       | account          | UNIQUE          |
+| department_name_idx | department       | UNIQUE          |
++---------------------+------------------+-----------------+
+28 rows in set (0.03 sec)
+*/
 
+-- There are a few useful views:
+
+/*
+View name                 | Information about 
++-------------------------+---------------------------------+
+Tables                    | Tables and views
+Columns                   | Columns of tables and views
+Statistics                |
 
 
 
