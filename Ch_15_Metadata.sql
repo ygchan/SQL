@@ -205,14 +205,50 @@ order by 3, 1;
 
 /*
 View name                 | Information about 
-+-------------------------+---------------------------------+
++-------------------------+-------------------------------------+
 Tables                    | Tables and views
 Columns                   | Columns of tables and views
-Statistics                |
+Statistics                | Indexes
+User_Privileges           | Who has privileges on which schema
+Views                     | Views
+Engines                   | Available storage engines
+Partitions                | Table partitions
+Events                    | Scheduled events
+Profiling                 | User profiling information
+*/
+
+-- Being able to work with Metadata is interesting
+-- But what can you do with it?
+
+-- Many projects take the design by committee approach
+-- where multiple people are creating database objects
+
+-- You may need a script to create the various tables, indexes, views
+-- for the team that has deployed.
+
+-- This is were information_schema query allows you to do.
+-- For example: This basic script that create a bank.customer table:
+create table customer
+(
+   cust_id integer unsigned not null auto_increment,
+   fed_id varchar(12) not null,
+   cust_type_cd enum('I', 'B') not null,
+   address varchar(30),
+   city varchar(20),
+   state varchar(20),
+   postal_code varchar(20),
+   constraint pk_customer primary key (cust_id)
+);
+
+-- It would be easier to create the script using procedural language
+-- Transact-SQL or Java.
+
+-- But it is possible to write a single query that will generate the create
+-- table statement. In other words, a code that create code.
 
 
 
-
+∑
 
 
 
